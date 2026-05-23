@@ -82,6 +82,13 @@ fun RegisterScreen(
             )
             Spacer(Modifier.height(20.dp))
 
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(checked = viewModel.isClient, onCheckedChange = { viewModel.onRoleChange(it) })
+                Text("Я клиент (оформлять абонементы, записываться)")
+            }
+
+            Spacer(Modifier.height(12.dp))
+
             Button(
                 onClick = { viewModel.register() },
                 enabled = state !is RegisterUiState.Loading,

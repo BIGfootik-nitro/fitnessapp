@@ -44,6 +44,24 @@ class SubscriptionRepositoryImpl(private val client: HttpClient) : SubscriptionR
         response.body<IdResponse>().id
     }
 
+    override suspend fun getMine(): Result<List<Subscription>> = runCatching {
+        val response = client.get("/me/subscriptions")
+        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        val list: List<SubscriptionResponse> = response.body()
+        list.map {
+            Subscription(it.id, it.clientId, SubscriptionType.valueOf(it.type),
+                it.startDate, it.endDate, it.isFrozen, it.price)
+        }
+    }
+
+    override suspend fun buyMine(type: String, startDate: String, endDate: String, price: String): Result<Unit> = runCatching {
+        val response = client.post("/me/subscriptions") {
+            setBody(SubscriptionRequest(type, startDate, endDate, price))
+        }
+        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        if (!response.status.isSuccess()) throw RuntimeException("Не удалось оформить абонемент")
+    }
+
     override suspend fun toggleFreeze(subscriptionId: String): Result<Boolean> = runCatching {
         val response = client.patch("/subscriptions/$subscriptionId/freeze")
         if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()

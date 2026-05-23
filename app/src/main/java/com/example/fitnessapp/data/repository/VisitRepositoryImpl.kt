@@ -22,6 +22,13 @@ class VisitRepositoryImpl(private val client: HttpClient) : VisitRepository {
         list.map { Visit(it.id, it.clientId, it.visitedAt, it.note) }
     }
 
+    override suspend fun getMine(): Result<List<Visit>> = runCatching {
+        val response = client.get("/me/visits")
+        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        val list: List<VisitResponse> = response.body()
+        list.map { Visit(it.id, it.clientId, it.visitedAt, it.note) }
+    }
+
     override suspend fun add(clientId: String, visitedAt: String, note: String?): Result<String> = runCatching {
         val response = client.post("/clients/$clientId/visits") {
             setBody(VisitRequest(visitedAt, note))

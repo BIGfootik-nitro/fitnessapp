@@ -29,17 +29,16 @@ class AuthRepositoryImpl(
         }
     }
 
-    override suspend fun register(username: String, password: String): Result<Unit> {
+    override suspend fun register(username: String, password: String, role: String): Result<Unit> {
         return runCatching {
             val response = client.post("/auth/register") {
-                setBody(RegisterRequest(username, password))
+                setBody(RegisterRequest(username, password, role))
             }
             when (response.status) {
                 HttpStatusCode.Created -> Unit
                 HttpStatusCode.Conflict -> throw RuntimeException("Пользователь уже существует")
                 else -> throw RuntimeException("Не удалось зарегистрироваться")
             }
-            // после регистрации сразу логиним
             login(username, password).getOrThrow()
         }
     }
@@ -50,5 +49,9 @@ class AuthRepositoryImpl(
 
     override suspend fun isLoggedIn(): Boolean {
         return tokenStorage.getToken() != null
+    }
+
+    override suspend fun getRole(): String? {
+        return tokenStorage.getRole()
     }
 }

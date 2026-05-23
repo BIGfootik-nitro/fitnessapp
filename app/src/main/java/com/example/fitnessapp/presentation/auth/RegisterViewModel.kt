@@ -32,6 +32,11 @@ class RegisterViewModel : ViewModel() {
     fun onPasswordChange(value: String) { password = value }
     fun onPasswordConfirmChange(value: String) { passwordConfirm = value }
 
+    var isClient by mutableStateOf(false)
+        private set
+
+    fun onRoleChange(client: Boolean) { isClient = client }
+
     fun register() {
         if (username.isBlank() || password.isBlank()) {
             uiState = RegisterUiState.Error("Заполните все поля")
@@ -47,7 +52,8 @@ class RegisterViewModel : ViewModel() {
         }
         viewModelScope.launch {
             uiState = RegisterUiState.Loading
-            authRepository.register(username.trim(), password).fold(
+            val role = if (isClient) "CLIENT" else "TRAINER"
+            authRepository.register(username.trim(), password, role).fold(
                 onSuccess = { uiState = RegisterUiState.Success },
                 onFailure = { uiState = RegisterUiState.Error(it.message ?: "Ошибка регистрации") }
             )

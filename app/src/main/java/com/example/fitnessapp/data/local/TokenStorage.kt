@@ -25,4 +25,6 @@ class TokenStorage(private val context: Context) {
     suspend fun clear() {
         context.dataStore.edit { it.remove(tokenKey) }
     }
+
+    suspend fun getRole(): String? = JwtUtils.extractRole(getToken())
 }
