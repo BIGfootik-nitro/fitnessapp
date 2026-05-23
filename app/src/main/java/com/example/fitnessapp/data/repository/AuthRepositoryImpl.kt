@@ -3,6 +3,7 @@ package com.example.fitnessapp.data.repository
 import com.example.fitnessapp.data.local.TokenStorage
 import com.example.fitnessapp.data.remote.dto.AuthResponse
 import com.example.fitnessapp.data.remote.dto.LoginRequest
+import com.example.fitnessapp.data.remote.dto.RegisterRequest
 import com.example.fitnessapp.domain.repository.AuthRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -25,6 +26,21 @@ class AuthRepositoryImpl(
             }
             val auth: AuthResponse = response.body()
             tokenStorage.saveToken(auth.token)
+        }
+    }
+
+    override suspend fun register(username: String, password: String): Result<Unit> {
+        return runCatching {
+            val response = client.post("/auth/register") {
+                setBody(RegisterRequest(username, password))
+            }
+            when (response.status) {
+                HttpStatusCode.Created -> Unit
+                HttpStatusCode.Conflict -> throw RuntimeException("Пользователь уже существует")
+                else -> throw RuntimeException("Не удалось зарегистрироваться")
+            }
+            // после регистрации сразу логиним
+            login(username, password).getOrThrow()
         }
     }
 

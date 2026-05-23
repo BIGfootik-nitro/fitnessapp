@@ -1,6 +1,8 @@
 package com.example.fitnessapp.presentation.auth
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -11,19 +13,28 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(
-    onLoginSuccess: () -> Unit,
-    onRegisterClick: () -> Unit,
-    viewModel: LoginViewModel = viewModel()
+fun RegisterScreen(
+    onSuccess: () -> Unit,
+    onBack: () -> Unit,
+    viewModel: RegisterViewModel = viewModel()
 ) {
     val state = viewModel.uiState
 
     LaunchedEffect(state) {
-        if (state is LoginUiState.Success) onLoginSuccess()
+        if (state is RegisterUiState.Success) onSuccess()
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Вход") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text("Регистрация") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                    }
+                }
+            )
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -33,9 +44,6 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Учёт клиентов", style = MaterialTheme.typography.headlineMedium)
-            Spacer(Modifier.height(32.dp))
-
             OutlinedTextField(
                 value = viewModel.username,
                 onValueChange = {
@@ -59,32 +67,40 @@ fun LoginScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = viewModel.passwordConfirm,
+                onValueChange = {
+                    viewModel.onPasswordConfirmChange(it)
+                    viewModel.resetError()
+                },
+                label = { Text("Повторите пароль") },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth()
+            )
             Spacer(Modifier.height(20.dp))
 
             Button(
-                onClick = { viewModel.login() },
-                enabled = state !is LoginUiState.Loading,
+                onClick = { viewModel.register() },
+                enabled = state !is RegisterUiState.Loading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (state is LoginUiState.Loading) {
+                if (state is RegisterUiState.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
                         strokeWidth = 2.dp,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Войти")
+                    Text("Зарегистрироваться")
                 }
             }
 
-            if (state is LoginUiState.Error) {
+            if (state is RegisterUiState.Error) {
                 Spacer(Modifier.height(12.dp))
                 Text(state.message, color = MaterialTheme.colorScheme.error)
-            }
-
-            Spacer(Modifier.height(16.dp))
-            TextButton(onClick = onRegisterClick) {
-                Text("Нет аккаунта? Зарегистрироваться")
             }
         }
     }

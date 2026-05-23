@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.fitnessapp.di.ServiceLocator
 import com.example.fitnessapp.presentation.auth.LoginScreen
+import com.example.fitnessapp.presentation.auth.RegisterScreen
 import com.example.fitnessapp.presentation.clients.detail.ClientDetailScreen
 import com.example.fitnessapp.presentation.clients.form.ClientFormScreen
 import com.example.fitnessapp.presentation.clients.list.ClientListScreen
@@ -37,7 +38,19 @@ fun NavGraph() {
                     navController.navigate(Screen.ClientList.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
-                }
+                },
+                onRegisterClick = { navController.navigate(Screen.Register.route) }
+            )
+        }
+
+        composable(Screen.Register.route) {
+            RegisterScreen(
+                onSuccess = {
+                    navController.navigate(Screen.ClientList.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 

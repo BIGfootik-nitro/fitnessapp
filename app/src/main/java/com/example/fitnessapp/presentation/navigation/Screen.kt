@@ -2,6 +2,7 @@ package com.example.fitnessapp.presentation.navigation
 
 sealed class Screen(val route: String) {
     data object Login : Screen("login")
+    data object Register : Screen("register")
     data object ClientList : Screen("clients")
     data object ClientForm : Screen("client_form?id={id}") {
         fun create() = "client_form"
