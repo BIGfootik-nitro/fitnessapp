@@ -1,6 +1,5 @@
 package com.example.fitnessapp.presentation.subscription
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,10 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitnessapp.domain.model.Subscription
 import com.example.fitnessapp.domain.model.SubscriptionType
+import com.example.fitnessapp.ui.components.*
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +40,8 @@ fun SubscriptionScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { viewModel.openCreate() }) {
+            FloatingActionButton(onClick = { viewModel.openCreate() },
+                containerColor = MaterialTheme.colorScheme.primary) {
                 Icon(Icons.Default.Add, "Оформить")
             }
         }
@@ -46,15 +50,17 @@ fun SubscriptionScreen(
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (state) {
                 is SubscriptionUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                is SubscriptionUiState.Error -> Text(state.message, Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.error)
+                is SubscriptionUiState.Error -> Text(state.message, Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.error)
                 is SubscriptionUiState.Success -> {
                     if (state.list.isEmpty()) {
-                        Text("Абонементов нет", Modifier.align(Alignment.Center))
+                        Text("Абонементов нет", Modifier.align(Alignment.Center),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
-                        LazyColumn {
+                        LazyColumn(contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             items(state.list, key = { it.id }) { sub ->
-                                SubscriptionItem(sub) { viewModel.toggleFreeze(sub.id) }
-                                HorizontalDivider()
+                                TrainerSubscriptionCard(sub) { viewModel.toggleFreeze(sub.id) }
                             }
                         }
                     }
@@ -69,76 +75,72 @@ fun SubscriptionScreen(
 }
 
 @Composable
-private fun SubscriptionItem(sub: Subscription, onToggleFreeze: () -> Unit) {
-    ListItem(
-        headlineContent = { Text(typeLabel(sub.type)) },
-        supportingContent = {
-            Column {
-                Text("${sub.startDate} — ${sub.endDate}")
-                Text("Цена: ${sub.price}")
-                if (sub.isFrozen) Text("Заморожен", color = MaterialTheme.colorScheme.primary)
+private fun TrainerSubscriptionCard(sub: Subscription, onToggleFreeze: () -> Unit) {
+    val isActive = !sub.isFrozen && LocalDate.now().toString() <= sub.endDate
+    val variant = when {
+        sub.isFrozen -> BadgeVariant.FROZEN
+        isActive -> BadgeVariant.ACTIVE
+        else -> BadgeVariant.EXPIRED
+    }
+    val badgeText = when {
+        sub.isFrozen -> "Заморожен"
+        isActive -> "Активен"
+        else -> "Истёк"
+    }
+
+    OutlinedCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
+        Column(Modifier.padding(20.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(typeLabel(sub.type), fontSize = 18.sp, fontWeight = FontWeight.W600)
+                StatusBadge(badgeText, variant)
             }
-        },
-        trailingContent = {
-            TextButton(onClick = onToggleFreeze) {
-                Text(if (sub.isFrozen) "Разморозить" else "Заморозить")
-            }
+            Spacer(Modifier.height(4.dp))
+            Text("${sub.startDate} — ${sub.endDate}", fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("${sub.price} руб.", fontSize = 14.sp, fontWeight = FontWeight.W500)
+            Spacer(Modifier.height(8.dp))
+            FitnessButton(if (sub.isFrozen) "Разморозить" else "Заморозить",
+                onClick = onToggleFreeze, outlined = true)
         }
-    )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreateSubscriptionDialog(viewModel: SubscriptionViewModel) {
     AlertDialog(
         onDismissRequest = { viewModel.showCreateDialog = false },
+        shape = MaterialTheme.shapes.extraLarge,
         title = { Text("Оформить абонемент") },
         text = {
             Column {
-                Text("Тип")
-                Row {
+                Text("Тип", fontWeight = FontWeight.W500)
+                Spacer(Modifier.height(4.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     SubscriptionType.values().forEach { t ->
-                        FilterChip(
-                            selected = viewModel.type == t,
-                            onClick = { viewModel.type = t },
-                            label = { Text(typeLabel(t)) },
-                            modifier = Modifier.padding(end = 4.dp)
-                        )
+                        FilterChip(selected = viewModel.type == t, onClick = { viewModel.type = t },
+                            label = { Text(typeLabel(t)) })
                     }
                 }
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = viewModel.startDate,
-                    onValueChange = { viewModel.startDate = it },
-                    label = { Text("Начало (ГГГГ-ММ-ДД)") },
-                    singleLine = true
-                )
+                OutlinedTextField(value = viewModel.startDate, onValueChange = { viewModel.startDate = it },
+                    label = { Text("Начало (ГГГГ-ММ-ДД)") }, singleLine = true,
+                    shape = MaterialTheme.shapes.medium)
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = viewModel.endDate,
-                    onValueChange = { viewModel.endDate = it },
-                    label = { Text("Конец (ГГГГ-ММ-ДД)") },
-                    singleLine = true
-                )
+                OutlinedTextField(value = viewModel.endDate, onValueChange = { viewModel.endDate = it },
+                    label = { Text("Конец (ГГГГ-ММ-ДД)") }, singleLine = true,
+                    shape = MaterialTheme.shapes.medium)
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = viewModel.price,
-                    onValueChange = { viewModel.price = it },
-                    label = { Text("Цена") },
-                    singleLine = true
-                )
+                OutlinedTextField(value = viewModel.price, onValueChange = { viewModel.price = it },
+                    label = { Text("Цена") }, singleLine = true,
+                    shape = MaterialTheme.shapes.medium)
                 viewModel.formError?.let {
                     Spacer(Modifier.height(8.dp))
                     Text(it, color = MaterialTheme.colorScheme.error)
                 }
             }
         },
-        confirmButton = {
-            TextButton(onClick = { viewModel.create() }) { Text("Создать") }
-        },
-        dismissButton = {
-            TextButton(onClick = { viewModel.showCreateDialog = false }) { Text("Отмена") }
-        }
+        confirmButton = { FitnessButton("Создать", onClick = { viewModel.create() }) },
+        dismissButton = { FitnessButton("Отмена", onClick = { viewModel.showCreateDialog = false }, outlined = true) }
     )
 }
 

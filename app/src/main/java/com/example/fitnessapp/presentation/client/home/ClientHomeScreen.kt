@@ -15,6 +15,10 @@ import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.domain.model.Profile
 import com.example.fitnessapp.domain.model.Subscription
 import com.example.fitnessapp.domain.model.SubscriptionType
+import com.example.fitnessapp.ui.components.*
+import com.example.fitnessapp.ui.theme.OnPrimaryContainer
+import com.example.fitnessapp.ui.theme.Primary
+import com.example.fitnessapp.ui.theme.PrimaryContainer
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,10 +32,26 @@ fun ClientHomeScreen(
     viewModel: ClientHomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val state = viewModel.uiState
+    var notifCount by remember { mutableStateOf(0) }
+
+    LaunchedEffect(state) {
+        if (state is ClientHomeUiState.Loaded) {
+            // count unread notifications on first load (optional - skip for now)
+        }
+    }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Фитнес-центр") })
+            TopAppBar(
+                title = { Text("Фитнес-центр") },
+                actions = {
+                    IconButton(onClick = onNotificationsClick) {
+                        Box {
+                            Icon(Icons.Default.Notifications, null)
+                        }
+                    }
+                }
+            )
         }
     ) { padding ->
         when (state) {
@@ -43,64 +63,56 @@ fun ClientHomeScreen(
                 val name = state.profile.client?.fullName ?: state.profile.username
                 Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)
                     .verticalScroll(rememberScrollState())) {
-                    Text("Привет, $name!", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+
+                    Text("Привет, $name!", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+
                     Spacer(Modifier.height(20.dp))
 
+                    // Active subscription card with gradient
                     if (state.activeSubs.isNotEmpty()) {
-                        Card(modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(16.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.VerifiedUser, null, tint = MaterialTheme.colorScheme.primary)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text("Активный абонемент", fontWeight = FontWeight.SemiBold)
-                                }
-                                Spacer(Modifier.height(8.dp))
-                                val sub = state.activeSubs.first()
-                                Text(typeLabel(sub.type), fontSize = 18.sp, fontWeight = FontWeight.Medium)
-                                Text("до ${sub.endDate}")
-                                if (LocalDate.now().toString() > sub.endDate) {
-                                    Text("Истёк", color = MaterialTheme.colorScheme.error)
-                                }
-                            }
+                        val sub = state.activeSubs.first()
+                        GradientCard(modifier = Modifier.fillMaxWidth()) {
+                            Text("АКТИВНЫЙ АБОНИМЕНТ", fontSize = 14.sp, fontWeight = FontWeight.W500,
+                                color = OnPrimaryContainer)
+                            Spacer(Modifier.height(4.dp))
+                            Text(typeLabel(sub.type), fontSize = 22.sp, fontWeight = FontWeight.W600,
+                                color = androidx.compose.ui.graphics.Color.White)
+                            Spacer(Modifier.height(4.dp))
+                            Text("Действует до ${sub.endDate}", fontSize = 14.sp, color = OnPrimaryContainer)
                         }
                     } else {
-                        OutlinedCard(modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error)
+                        OutlinedCard(modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.large) {
+                            Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(40.dp))
                                 Spacer(Modifier.height(8.dp))
-                                Text("Нет активного абонемента")
-                                Spacer(Modifier.height(8.dp))
-                                Button(onClick = onSubscriptionsClick) { Text("Оформить") }
+                                Text("Нет активного абонемента", fontWeight = FontWeight.W500)
+                                Spacer(Modifier.height(12.dp))
+                                FitnessButton("Оформить", onClick = onSubscriptionsClick)
                             }
                         }
                     }
 
                     Spacer(Modifier.height(24.dp))
-                    Text("Действия", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Действия", fontSize = 18.sp, fontWeight = FontWeight.W600)
                     Spacer(Modifier.height(12.dp))
 
-                    ActionCard(Icons.Default.EventAvailable, "Записаться на тренировку", onBookClick)
+                    ActionCard(Icons.Default.EventAvailable, "Записаться на тренировку", "Выберите дату и время",
+                        onClick = onBookClick)
                     Spacer(Modifier.height(8.dp))
-                    ActionCard(Icons.Default.CardMembership, "Мои абонементы", onSubscriptionsClick)
+                    ActionCard(Icons.Default.CardMembership, "Мои абонементы", "Просмотр и оформление",
+                        onClick = onSubscriptionsClick)
                     Spacer(Modifier.height(8.dp))
-                    ActionCard(Icons.Default.History, "История посещений", onVisitsClick)
+                    ActionCard(Icons.Default.History, "История посещений", "Ваши прошлые тренировки",
+                        onClick = onVisitsClick)
                     Spacer(Modifier.height(8.dp))
-                    ActionCard(Icons.Default.Notifications, "Уведомления", onNotificationsClick)
+                    ActionCard(Icons.Default.Notifications, "Уведомления", "Новые записи и абонементы",
+                        badgeCount = notifCount, onClick = onNotificationsClick)
                     Spacer(Modifier.height(8.dp))
-                    ActionCard(Icons.Default.Person, "Профиль", onProfileClick)
+                    ActionCard(Icons.Default.Person, "Профиль", "Настройки и данные",
+                        onClick = onProfileClick)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ActionCard(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
-    OutlinedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.width(12.dp))
-            Text(label, fontSize = 16.sp)
         }
     }
 }

@@ -10,9 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitnessapp.domain.model.Visit
+import com.example.fitnessapp.ui.components.FitnessButton
+import com.example.fitnessapp.ui.theme.Primary
+import com.example.fitnessapp.ui.theme.PrimaryContainer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +40,8 @@ fun VisitLogScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { viewModel.openAdd() }) {
+            FloatingActionButton(onClick = { viewModel.openAdd() },
+                containerColor = MaterialTheme.colorScheme.primary) {
                 Icon(Icons.Default.Add, "Отметить")
             }
         }
@@ -44,16 +50,16 @@ fun VisitLogScreen(
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (state) {
                 is VisitUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                is VisitUiState.Error -> Text(state.message, Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.error)
+                is VisitUiState.Error -> Text(state.message, Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.error)
                 is VisitUiState.Success -> {
                     if (state.list.isEmpty()) {
-                        Text("Посещений нет", Modifier.align(Alignment.Center))
+                        Text("Посещений нет", Modifier.align(Alignment.Center),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
-                        LazyColumn {
-                            items(state.list, key = { it.id }) { v ->
-                                VisitItem(v)
-                                HorizontalDivider()
-                            }
+                        LazyColumn(contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            items(state.list, key = { it.id }) { v -> VisitCard(v) }
                         }
                     }
                 }
@@ -64,35 +70,45 @@ fun VisitLogScreen(
     if (viewModel.showAddDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.showAddDialog = false },
+            shape = MaterialTheme.shapes.extraLarge,
             title = { Text("Зафиксировать посещение") },
             text = {
                 Column {
-                    OutlinedTextField(
-                        value = viewModel.note,
-                        onValueChange = { viewModel.note = it },
+                    OutlinedTextField(value = viewModel.note, onValueChange = { viewModel.note = it },
                         label = { Text("Комментарий (необязательно)") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                        modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
                     viewModel.error?.let {
                         Spacer(Modifier.height(8.dp))
                         Text(it, color = MaterialTheme.colorScheme.error)
                     }
                 }
             },
-            confirmButton = {
-                TextButton(onClick = { viewModel.add() }) { Text("Отметить") }
-            },
-            dismissButton = {
-                TextButton(onClick = { viewModel.showAddDialog = false }) { Text("Отмена") }
-            }
+            confirmButton = { FitnessButton("Отметить", onClick = { viewModel.add() }) },
+            dismissButton = { FitnessButton("Отмена", onClick = { viewModel.showAddDialog = false }, outlined = true) }
         )
     }
 }
 
 @Composable
-private fun VisitItem(visit: Visit) {
-    ListItem(
-        headlineContent = { Text(visit.visitedAt.replace("T", " ").substringBefore(".")) },
-        supportingContent = visit.note?.let { { Text(it) } }
-    )
+private fun VisitCard(visit: Visit) {
+    OutlinedCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
+        Row(Modifier.padding(20.dp)) {
+            Surface(shape = MaterialTheme.shapes.medium, color = PrimaryContainer,
+                modifier = Modifier.size(40.dp)) {
+                Box(contentAlignment = Alignment.Center) {
+                    val day = visit.visitedAt.substring(8, 10)
+                    Text(day, fontSize = 14.sp, fontWeight = FontWeight.W600, color = Primary)
+                }
+            }
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text(visit.visitedAt.replace("T", " ").substringBefore("."),
+                    fontSize = 16.sp, fontWeight = FontWeight.W600)
+                visit.note?.let {
+                    Spacer(Modifier.height(2.dp))
+                    Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+    }
 }

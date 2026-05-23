@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
@@ -13,9 +14,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitnessapp.domain.model.Client
+import com.example.fitnessapp.ui.components.FitnessButton
+import com.example.fitnessapp.ui.theme.Primary
+import com.example.fitnessapp.ui.theme.PrimaryContainer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +53,8 @@ fun ClientListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddClient) {
+            FloatingActionButton(onClick = onAddClient,
+                containerColor = MaterialTheme.colorScheme.primary) {
                 Icon(Icons.Default.Add, contentDescription = "Добавить")
             }
         }
@@ -65,7 +72,8 @@ fun ClientListScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 placeholder = { Text("Поиск по имени") },
                 leadingIcon = { Icon(Icons.Default.Search, null) },
-                singleLine = true
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium
             )
 
             when (state) {
@@ -76,13 +84,13 @@ fun ClientListScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(state.message, color = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.height(8.dp))
-                        Button(onClick = { viewModel.load() }) { Text("Повторить") }
+                        FitnessButton("Повторить", onClick = { viewModel.load() })
                     }
                 }
                 is ClientListUiState.Success -> {
                     if (state.clients.isEmpty()) {
                         Box(Modifier.fillMaxSize(), Alignment.Center) {
-                            Text("Клиентов пока нет")
+                            Text("Клиентов пока нет", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     } else {
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -101,12 +109,25 @@ fun ClientListScreen(
 
 @Composable
 private fun ClientItem(client: Client, onClick: () -> Unit) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        headlineContent = { Text(client.fullName) },
-        supportingContent = {
-            val sub = listOfNotNull(client.phone, client.email).joinToString(" · ")
-            if (sub.isNotEmpty()) Text(sub)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Avatar with initials
+        Surface(shape = CircleShape, color = PrimaryContainer, modifier = Modifier.size(44.dp)) {
+            Box(contentAlignment = Alignment.Center) {
+                val initials = client.fullName.split(" ").mapNotNull { it.firstOrNull()?.uppercaseChar() }.take(2).joinToString("")
+                Text(initials, fontSize = 16.sp, fontWeight = FontWeight.W600, color = Primary)
+            }
         }
-    )
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(client.fullName, fontWeight = FontWeight.W500, fontSize = 16.sp)
+            val sub = listOfNotNull(client.phone, client.email).joinToString(" · ")
+            if (sub.isNotEmpty()) Text(sub, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
 }

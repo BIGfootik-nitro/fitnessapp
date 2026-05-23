@@ -11,8 +11,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.domain.model.Booking
 import com.example.fitnessapp.domain.model.BookingStatus
+import com.example.fitnessapp.ui.components.*
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -26,7 +28,8 @@ fun MyBookingsScreen(
     Scaffold(
         topBar = { TopAppBar(title = { Text("Мои записи") }) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { viewModel.openCreate() }) {
+            FloatingActionButton(onClick = { viewModel.openCreate() },
+                containerColor = MaterialTheme.colorScheme.primary) {
                 Icon(Icons.Default.Add, "Записаться")
             }
         }
@@ -44,8 +47,8 @@ fun MyBookingsScreen(
                     Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)
                         .verticalScroll(rememberScrollState())) {
                         state.bookings.forEach { booking ->
-                            BookingCard(booking, onCancel = { viewModel.cancel(booking.id) })
-                            Spacer(Modifier.height(8.dp))
+                            MyBookingCard(booking, onCancel = { viewModel.cancel(booking.id) })
+                            Spacer(Modifier.height(12.dp))
                         }
                     }
                 }
@@ -62,30 +65,34 @@ fun MyBookingsScreen(
 }
 
 @Composable
-private fun BookingCard(booking: Booking, onCancel: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
+private fun MyBookingCard(booking: Booking, onCancel: () -> Unit) {
+    val variant = when (booking.status) {
+        BookingStatus.PENDING -> BadgeVariant.PENDING
+        BookingStatus.CONFIRMED -> BadgeVariant.CONFIRMED
+        BookingStatus.CANCELLED -> BadgeVariant.CANCELLED
+    }
+    val badgeText = when (booking.status) {
+        BookingStatus.PENDING -> "Ожидает"
+        BookingStatus.CONFIRMED -> "Подтверждена"
+        BookingStatus.CANCELLED -> "Отменена"
+    }
+
+    OutlinedCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
+        Column(Modifier.padding(20.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(booking.scheduledAt.substringBefore("T"), fontWeight = FontWeight.SemiBold)
-                StatusChip(booking.status)
+                Text(booking.scheduledAt.substringBefore("T"), fontSize = 16.sp, fontWeight = FontWeight.W600)
+                StatusBadge(badgeText, variant)
             }
-            booking.note?.let { Text(it) }
+            booking.note?.let {
+                Spacer(Modifier.height(4.dp))
+                Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             if (booking.status == BookingStatus.PENDING) {
-                Spacer(Modifier.height(8.dp))
-                OutlinedButton(onClick = onCancel) { Text("Отменить") }
+                Spacer(Modifier.height(12.dp))
+                FitnessButton("Отменить", onClick = onCancel, outlined = true, destructive = true)
             }
         }
     }
-}
-
-@Composable
-private fun StatusChip(status: BookingStatus) {
-    val (text, color) = when (status) {
-        BookingStatus.PENDING -> "Ожидает" to MaterialTheme.colorScheme.tertiary
-        BookingStatus.CONFIRMED -> "Подтверждена" to MaterialTheme.colorScheme.primary
-        BookingStatus.CANCELLED -> "Отменена" to MaterialTheme.colorScheme.error
-    }
-    Text(text, color = color, fontWeight = FontWeight.Medium)
 }
 
 @Composable
@@ -97,25 +104,31 @@ private fun CreateBookingDialog(
     var timeText by remember { mutableStateOf("10:00") }
     var noteText by remember { mutableStateOf("") }
 
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Записаться на тренировку") },
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = MaterialTheme.shapes.extraLarge,
+        title = { Text("Записаться на тренировку", fontWeight = FontWeight.W500) },
         text = {
             Column {
                 OutlinedTextField(value = dateText, onValueChange = { dateText = it },
-                    label = { Text("Дата (ГГГГ-ММ-ДД)") }, singleLine = true)
+                    label = { Text("Дата (ГГГГ-ММ-ДД)") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(value = timeText, onValueChange = { timeText = it },
-                    label = { Text("Время (ЧЧ:ММ)") }, singleLine = true)
+                    label = { Text("Время (ЧЧ:ММ)") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(value = noteText, onValueChange = { noteText = it },
-                    label = { Text("Комментарий (необязательно)") }, singleLine = true)
+                    label = { Text("Комментарий (необязательно)") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
             }
         },
         confirmButton = {
-            TextButton(onClick = {
+            FitnessButton("Записаться", onClick = {
                 val dt = LocalDateTime.parse("${dateText}T$timeText:00")
                 onCreate(dt.toInstant(ZoneOffset.UTC).toString(), noteText.ifBlank { null })
-            }, enabled = dateText.isNotBlank() && timeText.isNotBlank()) { Text("Записаться") }
+            }, enabled = dateText.isNotBlank() && timeText.isNotBlank())
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
+        dismissButton = { FitnessButton("Отмена", onClick = onDismiss, outlined = true) }
     )
 }

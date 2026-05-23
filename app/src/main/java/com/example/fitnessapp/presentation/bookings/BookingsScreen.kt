@@ -9,8 +9,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.domain.model.Booking
 import com.example.fitnessapp.domain.model.BookingStatus
+import com.example.fitnessapp.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +40,7 @@ fun BookingsScreen(
                                 onConfirm = { viewModel.confirm(booking.id) },
                                 onCancel = { viewModel.cancel(booking.id) }
                             )
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(12.dp))
                         }
                     }
                 }
@@ -49,32 +51,38 @@ fun BookingsScreen(
 
 @Composable
 private fun TrainerBookingCard(booking: Booking, onConfirm: () -> Unit, onCancel: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Text(booking.clientName ?: "Клиент", fontWeight = FontWeight.SemiBold)
-            Text("Дата: ${booking.scheduledAt.substringBefore("T")}")
-            booking.note?.let { Text("Комментарий: $it") }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically) {
-                StatusChip(booking.status)
-                if (booking.status == BookingStatus.PENDING) {
-                    Row {
-                        OutlinedButton(onClick = onCancel) { Text("Отклонить") }
-                        Spacer(Modifier.width(8.dp))
-                        Button(onClick = onConfirm) { Text("Подтвердить") }
-                    }
+    val variant = when (booking.status) {
+        BookingStatus.PENDING -> BadgeVariant.PENDING
+        BookingStatus.CONFIRMED -> BadgeVariant.CONFIRMED
+        BookingStatus.CANCELLED -> BadgeVariant.CANCELLED
+    }
+    val badgeText = when (booking.status) {
+        BookingStatus.PENDING -> "Ожидает"
+        BookingStatus.CONFIRMED -> "Подтверждена"
+        BookingStatus.CANCELLED -> "Отменена"
+    }
+    val isPending = booking.status == BookingStatus.PENDING
+
+    OutlinedCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
+        Column(Modifier.padding(20.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(booking.clientName ?: "Клиент", fontSize = 16.sp, fontWeight = FontWeight.W600)
+                StatusBadge(badgeText, variant)
+            }
+            Spacer(Modifier.height(4.dp))
+            Text("Дата: ${booking.scheduledAt.substringBefore("T")}", fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            booking.note?.let {
+                Text("Комментарий: $it", fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (isPending) {
+                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FitnessButton("Отклонить", onClick = onCancel, outlined = true, destructive = true)
+                    FitnessButton("Подтвердить", onClick = onConfirm)
                 }
             }
         }
     }
-}
-
-@Composable
-private fun StatusChip(status: BookingStatus) {
-    val (text, color) = when (status) {
-        BookingStatus.PENDING -> "Ожидает" to MaterialTheme.colorScheme.tertiary
-        BookingStatus.CONFIRMED -> "Подтверждена" to MaterialTheme.colorScheme.primary
-        BookingStatus.CANCELLED -> "Отменена" to MaterialTheme.colorScheme.error
-    }
-    Text(text, color = color, fontWeight = FontWeight.Medium)
 }

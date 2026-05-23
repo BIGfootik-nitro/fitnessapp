@@ -7,11 +7,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.domain.model.Subscription
 import com.example.fitnessapp.domain.model.SubscriptionType
+import com.example.fitnessapp.ui.components.*
+import com.example.fitnessapp.ui.theme.OnPrimaryContainer
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,28 +28,29 @@ fun MySubsScreen(
     Scaffold(
         topBar = { TopAppBar(title = { Text("Мои абонементы") }) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { viewModel.openBuy() }) {
+            FloatingActionButton(onClick = { viewModel.openBuy() },
+                containerColor = MaterialTheme.colorScheme.primary) {
                 Icon(Icons.Default.Add, "Купить")
             }
         }
     ) { padding ->
         when (state) {
             is MySubsUiState.Loading -> Box(Modifier.fillMaxSize().padding(padding),
-                contentAlignment = androidx.compose.ui.Alignment.Center) { CircularProgressIndicator() }
+                contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             is MySubsUiState.Error -> Box(Modifier.fillMaxSize().padding(padding),
-                contentAlignment = androidx.compose.ui.Alignment.Center) { Text(state.message, color = MaterialTheme.colorScheme.error) }
+                contentAlignment = Alignment.Center) { Text(state.message, color = MaterialTheme.colorScheme.error) }
             is MySubsUiState.Loaded -> {
                 if (state.subs.isEmpty()) {
                     Box(Modifier.fillMaxSize().padding(padding),
-                        contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        Text("Нет абонементов. Нажмите + чтобы оформить")
+                        contentAlignment = Alignment.Center) {
+                        Text("Нет абонементов. Нажмите + чтобы оформить", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else {
                     Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)
                         .verticalScroll(rememberScrollState())) {
                         state.subs.forEach { sub ->
                             SubscriptionCard(sub)
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(12.dp))
                         }
                     }
                 }
@@ -64,16 +69,49 @@ fun MySubsScreen(
 @Composable
 private fun SubscriptionCard(sub: Subscription) {
     val isActive = !sub.isFrozen && LocalDate.now().toString() <= sub.endDate
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(typeLabel(sub.type), fontWeight = FontWeight.SemiBold)
-                if (sub.isFrozen) Text("Заморожен", color = MaterialTheme.colorScheme.tertiary)
-                else if (isActive) Text("Активен", color = MaterialTheme.colorScheme.primary)
-                else Text("Истёк", color = MaterialTheme.colorScheme.error)
+    val isExpired = !isActive && !sub.isFrozen
+
+    if (isActive) {
+        // Active subscription — gradient card
+        GradientCard(modifier = Modifier.fillMaxWidth()) {
+            Text("АКТИВНЫЙ", fontSize = 12.sp, fontWeight = FontWeight.W500, color = OnPrimaryContainer)
+            Spacer(Modifier.height(4.dp))
+            Text(typeLabel(sub.type), fontSize = 20.sp, fontWeight = FontWeight.W600,
+                color = androidx.compose.ui.graphics.Color.White)
+            Spacer(Modifier.height(4.dp))
+            Text("${sub.startDate} — ${sub.endDate}", fontSize = 14.sp, color = OnPrimaryContainer)
+            Spacer(Modifier.height(2.dp))
+            Text("${sub.price} руб.", fontSize = 14.sp, fontWeight = FontWeight.W500,
+                color = androidx.compose.ui.graphics.Color.White)
+        }
+    } else {
+        // Frozen or expired — outlined card with status badge
+        OutlinedCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
+            Row(Modifier.padding(20.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top) {
+                Column {
+                    val variant = if (sub.isFrozen) BadgeVariant.FROZEN else BadgeVariant.EXPIRED
+                    val labelText = if (sub.isFrozen) "ЗАМОРОЖЕН" else "ИСТЁК"
+                    Text(labelText, fontSize = 12.sp, fontWeight = FontWeight.W500,
+                        color = if (sub.isFrozen) MaterialTheme.colorScheme.tertiary
+                        else MaterialTheme.colorScheme.error)
+                    Spacer(Modifier.height(4.dp))
+                    Text(typeLabel(sub.type), fontSize = 20.sp, fontWeight = FontWeight.W600,
+                        color = if (isExpired) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        else MaterialTheme.colorScheme.onSurface)
+                    Spacer(Modifier.height(4.dp))
+                    Text("${sub.startDate} — ${sub.endDate}", fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(2.dp))
+                    Text("${sub.price} руб.", fontSize = 14.sp, fontWeight = FontWeight.W500,
+                        color = if (isExpired) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        else MaterialTheme.colorScheme.onSurface)
+                }
+                StatusBadge(
+                    text = if (sub.isFrozen) "Заморожен" else "Истёк",
+                    variant = if (sub.isFrozen) BadgeVariant.FROZEN else BadgeVariant.EXPIRED
+                )
             }
-            Text("${sub.startDate} — ${sub.endDate}")
-            Text("${sub.price} руб.")
         }
     }
 }
@@ -84,23 +122,40 @@ private fun BuySubscriptionDialog(
     onDismiss: () -> Unit
 ) {
     var selectedType by remember { mutableStateOf("MONTHLY") }
-    val types = listOf("MONTHLY" to "Месячный — 3500 руб.", "QUARTERLY" to "Квартальный — 9000 руб.", "ANNUAL" to "Годовой — 32000 руб.")
+    data class SubOption(val key: String, val label: String, val price: String)
+    val options = listOf(
+        SubOption("MONTHLY", "Месячный", "3 500 руб."),
+        SubOption("QUARTERLY", "Квартальный", "9 000 руб."),
+        SubOption("ANNUAL", "Годовой", "32 000 руб.")
+    )
     val prices = mapOf("MONTHLY" to "3500.00", "QUARTERLY" to "9000.00", "ANNUAL" to "32000.00")
     val today = LocalDate.now()
 
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Оформить абонемент") },
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = MaterialTheme.shapes.extraLarge,
+        title = { Text("Оформить абонемент", fontWeight = FontWeight.W500) },
         text = {
             Column {
-                types.forEach { (key, label) ->
-                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                        RadioButton(selected = selectedType == key, onClick = { selectedType = key })
-                        Text(label)
+                options.forEach { opt ->
+                    val selected = selectedType == opt.key
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        RadioButton(selected = selected, onClick = { selectedType = opt.key })
+                        Column {
+                            Text(opt.label, fontSize = 15.sp, fontWeight = FontWeight.W500)
+                            Text(opt.price, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = {
+            FitnessButton("Оформить", onClick = {
                 val start = today.toString()
                 val end = when (selectedType) {
                     "MONTHLY" -> today.plusMonths(1).toString()
@@ -108,9 +163,11 @@ private fun BuySubscriptionDialog(
                     else -> today.plusYears(1).toString()
                 }
                 onBuy(selectedType, start, end, prices[selectedType]!!)
-            }) { Text("Оформить") }
+            })
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
+        dismissButton = {
+            FitnessButton("Отмена", onClick = onDismiss, outlined = true)
+        }
     )
 }
 

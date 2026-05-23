@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.fitnessapp.ui.components.FitnessButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,7 +23,6 @@ fun ClientFormScreen(
     LaunchedEffect(clientId) {
         if (clientId != null) viewModel.loadForEdit(clientId)
     }
-
     LaunchedEffect(viewModel.uiState) {
         if (viewModel.uiState is ClientFormUiState.Saved) onSaved()
     }
@@ -46,37 +46,21 @@ fun ClientFormScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            OutlinedTextField(
-                value = viewModel.fullName,
-                onValueChange = { viewModel.fullName = it },
-                label = { Text("ФИО *") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+            OutlinedTextField(value = viewModel.fullName, onValueChange = { viewModel.fullName = it },
+                label = { Text("ФИО *") }, singleLine = true,
+                modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
             Spacer(Modifier.height(12.dp))
-            OutlinedTextField(
-                value = viewModel.phone,
-                onValueChange = { viewModel.phone = it },
-                label = { Text("Телефон") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+            OutlinedTextField(value = viewModel.phone, onValueChange = { viewModel.phone = it },
+                label = { Text("Телефон") }, singleLine = true,
+                modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
             Spacer(Modifier.height(12.dp))
-            OutlinedTextField(
-                value = viewModel.email,
-                onValueChange = { viewModel.email = it },
-                label = { Text("Email") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+            OutlinedTextField(value = viewModel.email, onValueChange = { viewModel.email = it },
+                label = { Text("Email") }, singleLine = true,
+                modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
             Spacer(Modifier.height(12.dp))
-            OutlinedTextField(
-                value = viewModel.birthDate,
-                onValueChange = { viewModel.birthDate = it },
-                label = { Text("Дата рождения (ГГГГ-ММ-ДД)") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+            OutlinedTextField(value = viewModel.birthDate, onValueChange = { viewModel.birthDate = it },
+                label = { Text("Дата рождения (ГГГГ-ММ-ДД)") }, singleLine = true,
+                modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
             Spacer(Modifier.height(20.dp))
 
             val state = viewModel.uiState
@@ -85,17 +69,8 @@ fun ClientFormScreen(
                 Spacer(Modifier.height(8.dp))
             }
 
-            Button(
-                onClick = { viewModel.save() },
-                enabled = state !is ClientFormUiState.Loading,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (state is ClientFormUiState.Loading) {
-                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                } else {
-                    Text("Сохранить")
-                }
-            }
+            FitnessButton("Сохранить", onClick = { viewModel.save() },
+                modifier = Modifier.fillMaxWidth(), enabled = state !is ClientFormUiState.Loading)
         }
     }
 }
