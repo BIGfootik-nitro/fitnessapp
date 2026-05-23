@@ -54,8 +54,15 @@ fun NavGraph() {
             RegisterScreen(
                 onSuccess = {
                     val role = runBlocking { ServiceLocator.authRepository.getRole() } ?: "TRAINER"
-                    val dest = if (role == "CLIENT") Screen.ClientHome.route else Screen.ClientList.route
-                    navController.navigate(dest) { popUpTo(Screen.Login.route) { inclusive = true } }
+                    if (role == "CLIENT") {
+                        navController.navigate(Screen.ClientProfile.create(isNew = true)) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Screen.ClientList.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    }
                 },
                 onBack = { navController.popBackStack() }
             )
@@ -132,9 +139,21 @@ fun NavGraph() {
         composable(Screen.MyVisits.route) { MyVisitsScreen() }
         composable(Screen.MyNotifications.route) { MyNotificationsScreen() }
 
-        composable(Screen.ClientProfile.route) {
+        composable(
+            route = Screen.ClientProfile.route,
+            arguments = listOf(navArgument("isNew") {
+                type = NavType.BoolType; defaultValue = false
+            })
+        ) { entry ->
+            val isNew = entry.arguments?.getBoolean("isNew") ?: false
             ClientProfileScreen(
-                onLogout = { navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } } }
+                isNewClient = isNew,
+                onLogout = { navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } } },
+                onProfileSaved = {
+                    navController.navigate(Screen.ClientHome.route) {
+                        popUpTo(Screen.ClientProfile.route) { inclusive = true }
+                    }
+                }
             )
         }
     }

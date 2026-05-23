@@ -27,5 +27,7 @@ sealed class Screen(val route: String) {
     data object MyBookings : Screen("my_bookings")
     data object MyVisits : Screen("my_visits")
     data object MyNotifications : Screen("my_notifications")
-    data object ClientProfile : Screen("client_profile")
+    data object ClientProfile : Screen("client_profile?isNew={isNew}") {
+        fun create(isNew: Boolean = false) = "client_profile?isNew=$isNew"
+    }
 }
