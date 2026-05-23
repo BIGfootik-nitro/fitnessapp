@@ -17,8 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 
 object ApiConfig {
-    // адрес локального бэка для эмулятора
-    const val BASE_URL = "http://10.0.2.2:8080"
+    const val BASE_URL = "https://fitness.springfamilychat.space"
 }
 
 fun createHttpClient(tokenStorage: TokenStorage): HttpClient {
