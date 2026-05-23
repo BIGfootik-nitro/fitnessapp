@@ -122,13 +122,11 @@ private fun CreateSubscriptionDialog(viewModel: SubscriptionViewModel) {
                     }
                 }
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(value = viewModel.startDate, onValueChange = { viewModel.startDate = it },
-                    label = { Text("Начало (ГГГГ-ММ-ДД)") }, singleLine = true,
-                    shape = MaterialTheme.shapes.medium)
+                DatePickerField("Начало", viewModel.startDate, { viewModel.startDate = it },
+                    modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(value = viewModel.endDate, onValueChange = { viewModel.endDate = it },
-                    label = { Text("Конец (ГГГГ-ММ-ДД)") }, singleLine = true,
-                    shape = MaterialTheme.shapes.medium)
+                DatePickerField("Конец", viewModel.endDate, { viewModel.endDate = it },
+                    modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(value = viewModel.price, onValueChange = { viewModel.price = it },
                     label = { Text("Цена") }, singleLine = true,

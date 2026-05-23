@@ -19,9 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitnessapp.domain.model.Client
+import com.example.fitnessapp.ui.components.AvatarInitials
 import com.example.fitnessapp.ui.components.FitnessButton
-import com.example.fitnessapp.ui.theme.Primary
-import com.example.fitnessapp.ui.theme.PrimaryContainer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,13 +115,7 @@ private fun ClientItem(client: Client, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Avatar with initials
-        Surface(shape = CircleShape, color = PrimaryContainer, modifier = Modifier.size(44.dp)) {
-            Box(contentAlignment = Alignment.Center) {
-                val initials = client.fullName.split(" ").mapNotNull { it.firstOrNull()?.uppercaseChar() }.take(2).joinToString("")
-                Text(initials, fontSize = 16.sp, fontWeight = FontWeight.W600, color = Primary)
-            }
-        }
+        AvatarInitials(client.fullName, modifier = Modifier.size(44.dp))
         Spacer(Modifier.width(12.dp))
         Column {
             Text(client.fullName, fontWeight = FontWeight.W500, fontSize = 16.sp)

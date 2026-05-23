@@ -11,8 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.domain.model.Visit
-import com.example.fitnessapp.ui.theme.PrimaryContainer
-import com.example.fitnessapp.ui.theme.Primary
+import com.example.fitnessapp.ui.components.FitnessButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,10 +48,11 @@ fun MyVisitsScreen(
 private fun VisitCard(visit: Visit) {
     OutlinedCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
         Row(Modifier.padding(20.dp), verticalAlignment = Alignment.Top) {
-            Surface(shape = MaterialTheme.shapes.medium, color = PrimaryContainer,
+            Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.primaryContainer,
                 modifier = Modifier.size(40.dp)) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(visit.visitedAt.substring(8, 10), fontSize = 14.sp, fontWeight = FontWeight.W600, color = Primary)
+                    Text(visit.visitedAt.substring(8, 10), fontSize = 14.sp, fontWeight = FontWeight.W600,
+                        color = MaterialTheme.colorScheme.primary)
                 }
             }
             Spacer(Modifier.width(12.dp))

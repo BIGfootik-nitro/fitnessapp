@@ -9,10 +9,11 @@ import com.example.fitnessapp.di.ServiceLocator
 import com.example.fitnessapp.domain.model.Profile
 import com.example.fitnessapp.domain.model.Subscription
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 sealed class ClientHomeUiState {
     data object Loading : ClientHomeUiState()
-    data class Loaded(val profile: Profile, val activeSubs: List<Subscription>) : ClientHomeUiState()
+    data class Loaded(val profile: Profile, val activeSubs: List<Subscription>, val unreadNotifs: Int = 0) : ClientHomeUiState()
     data class Error(val message: String) : ClientHomeUiState()
 }
 
@@ -20,11 +21,10 @@ class ClientHomeViewModel : ViewModel() {
 
     private val profileRepo = ServiceLocator.profileRepository
     private val subRepo = ServiceLocator.subscriptionRepository
+    private val notifRepo = ServiceLocator.notificationRepository
 
     var uiState by mutableStateOf<ClientHomeUiState>(ClientHomeUiState.Loading)
         private set
-
-    init { load() }
 
     fun load() {
         viewModelScope.launch {
@@ -35,9 +35,14 @@ class ClientHomeViewModel : ViewModel() {
             }
             val subsResult = subRepo.getMine()
             val subs = subsResult.getOrElse { emptyList() }
-            uiState = ClientHomeUiState.Loaded(profile, subs.filter {
-                it.endDate >= java.time.LocalDate.now().toString() && !it.isFrozen
-            })
+            val notifsResult = notifRepo.getMine()
+            val unread = notifsResult.getOrElse { emptyList() }.count { !it.read }
+            val today = LocalDate.now().toString()
+            uiState = ClientHomeUiState.Loaded(
+                profile,
+                subs.filter { it.endDate >= today && !it.isFrozen },
+                unread
+            )
         }
     }
 }

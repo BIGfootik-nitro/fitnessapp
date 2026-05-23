@@ -14,7 +14,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.ui.components.FitnessButton
-import com.example.fitnessapp.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,8 +89,7 @@ fun RegisterScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Checkbox(checked = viewModel.isClient, onCheckedChange = { viewModel.onRoleChange(it) },
-                    colors = CheckboxDefaults.colors(checkedColor = Primary))
+                Checkbox(checked = viewModel.isClient, onCheckedChange = { viewModel.onRoleChange(it) })
                 Text("Я клиент (оформлять абонементы, записываться)", fontSize = 14.sp,
                     fontWeight = FontWeight.W500)
             }

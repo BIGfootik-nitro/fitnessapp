@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitnessapp.ui.components.AvatarInitials
 import com.example.fitnessapp.ui.components.FitnessButton
-import com.example.fitnessapp.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,7 +112,8 @@ private fun InfoField(label: String, value: String) {
     OutlinedCard(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         shape = MaterialTheme.shapes.medium) {
         Column(Modifier.padding(16.dp)) {
-            Text(label, style = MaterialTheme.typography.labelMedium, color = Primary)
+            Text(label, style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(2.dp))
             Text(value, fontSize = 16.sp)
         }

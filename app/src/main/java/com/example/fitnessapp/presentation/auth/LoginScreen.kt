@@ -12,7 +12,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.ui.components.FitnessButton
-import com.example.fitnessapp.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +36,8 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Фитнес-центр", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Primary)
+            Text("Фитнес-центр", fontSize = 28.sp, fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(4.dp))
             Text("Учёт клиентов", style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -79,7 +79,8 @@ fun LoginScreen(
 
             Spacer(Modifier.height(20.dp))
             TextButton(onClick = onRegisterClick) {
-                Text("Нет аккаунта? Зарегистрироваться", color = Primary)
+                Text("Нет аккаунта? Зарегистрироваться",
+                    color = MaterialTheme.colorScheme.primary)
             }
         }
     }

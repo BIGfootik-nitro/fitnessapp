@@ -25,6 +25,8 @@ fun MyBookingsScreen(
 ) {
     val state = viewModel.uiState
 
+    LaunchedEffect(Unit) { viewModel.load() }
+
     Scaffold(
         topBar = { TopAppBar(title = { Text("Мои записи") }) },
         floatingActionButton = {
@@ -110,13 +112,9 @@ private fun CreateBookingDialog(
         title = { Text("Записаться на тренировку", fontWeight = FontWeight.W500) },
         text = {
             Column {
-                OutlinedTextField(value = dateText, onValueChange = { dateText = it },
-                    label = { Text("Дата (ГГГГ-ММ-ДД)") }, singleLine = true,
-                    modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
+                DatePickerField("Дата", dateText, { dateText = it }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(value = timeText, onValueChange = { timeText = it },
-                    label = { Text("Время (ЧЧ:ММ)") }, singleLine = true,
-                    modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
+                TimePickerField("Время", timeText, { timeText = it }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(value = noteText, onValueChange = { noteText = it },
                     label = { Text("Комментарий (необязательно)") }, singleLine = true,
@@ -125,7 +123,7 @@ private fun CreateBookingDialog(
         },
         confirmButton = {
             FitnessButton("Записаться", onClick = {
-                val dt = LocalDateTime.parse("${dateText}T$timeText:00")
+                val dt = LocalDateTime.parse("${dateText}T${timeText}:00")
                 onCreate(dt.toInstant(ZoneOffset.UTC).toString(), noteText.ifBlank { null })
             }, enabled = dateText.isNotBlank() && timeText.isNotBlank())
         },

@@ -12,10 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.domain.model.Notification
-import com.example.fitnessapp.ui.components.StatusBadge
-import com.example.fitnessapp.ui.components.BadgeVariant
-import com.example.fitnessapp.ui.theme.Primary
-import com.example.fitnessapp.ui.theme.PrimaryContainer
+import com.example.fitnessapp.ui.components.FitnessButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,10 +54,11 @@ private fun NotificationCard(notif: Notification, onMarkRead: () -> Unit) {
         shape = MaterialTheme.shapes.medium
     ) {
         Row(Modifier.padding(20.dp), verticalAlignment = Alignment.Top) {
-            Surface(shape = MaterialTheme.shapes.medium, color = PrimaryContainer,
+            Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.primaryContainer,
                 modifier = Modifier.size(40.dp)) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(notif.title.take(1), fontSize = 16.sp, fontWeight = FontWeight.W600, color = Primary)
+                    Text(notif.title.take(1), fontSize = 16.sp, fontWeight = FontWeight.W600,
+                        color = MaterialTheme.colorScheme.primary)
                 }
             }
             Spacer(Modifier.width(12.dp))
@@ -68,9 +66,10 @@ private fun NotificationCard(notif: Notification, onMarkRead: () -> Unit) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(notif.title, fontWeight = if (notif.read) FontWeight.Normal else FontWeight.Bold)
                     if (!notif.read) {
-                        Surface(shape = MaterialTheme.shapes.extraSmall, color = Primary) {
+                        Surface(shape = MaterialTheme.shapes.extraSmall, color = MaterialTheme.colorScheme.primary) {
                             Text("new", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                fontSize = 10.sp, fontWeight = FontWeight.W600, color = androidx.compose.ui.graphics.Color.White)
+                                fontSize = 10.sp, fontWeight = FontWeight.W600,
+                                color = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
                 }

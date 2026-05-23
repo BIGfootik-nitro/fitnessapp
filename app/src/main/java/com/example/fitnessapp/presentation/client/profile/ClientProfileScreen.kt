@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.domain.model.Profile
 import com.example.fitnessapp.ui.components.AvatarInitials
+import com.example.fitnessapp.ui.components.DatePickerField
 import com.example.fitnessapp.ui.components.FitnessButton
 import com.example.fitnessapp.ui.theme.Primary
 
@@ -83,9 +84,8 @@ fun ClientProfileScreen(
                         label = { Text("Email") }, singleLine = true,
                         modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
                     Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(value = viewModel.birthDate, onValueChange = { viewModel.onBirthDateChange(it) },
-                        label = { Text("Дата рождения (ГГГГ-ММ-ДД)") }, singleLine = true,
-                        modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium)
+                    DatePickerField("Дата рождения", viewModel.birthDate, { viewModel.onBirthDateChange(it) },
+                        modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(20.dp))
 
                     FitnessButton(

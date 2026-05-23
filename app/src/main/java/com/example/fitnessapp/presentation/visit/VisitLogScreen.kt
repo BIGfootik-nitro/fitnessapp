@@ -16,8 +16,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitnessapp.domain.model.Visit
 import com.example.fitnessapp.ui.components.FitnessButton
-import com.example.fitnessapp.ui.theme.Primary
-import com.example.fitnessapp.ui.theme.PrimaryContainer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,11 +91,12 @@ fun VisitLogScreen(
 private fun VisitCard(visit: Visit) {
     OutlinedCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
         Row(Modifier.padding(20.dp)) {
-            Surface(shape = MaterialTheme.shapes.medium, color = PrimaryContainer,
+            Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.primaryContainer,
                 modifier = Modifier.size(40.dp)) {
                 Box(contentAlignment = Alignment.Center) {
                     val day = visit.visitedAt.substring(8, 10)
-                    Text(day, fontSize = 14.sp, fontWeight = FontWeight.W600, color = Primary)
+                    Text(day, fontSize = 14.sp, fontWeight = FontWeight.W600,
+                        color = MaterialTheme.colorScheme.primary)
                 }
             }
             Spacer(Modifier.width(12.dp))

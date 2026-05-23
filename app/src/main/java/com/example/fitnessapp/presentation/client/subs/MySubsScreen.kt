@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.domain.model.Subscription
 import com.example.fitnessapp.domain.model.SubscriptionType
 import com.example.fitnessapp.ui.components.*
-import com.example.fitnessapp.ui.theme.OnPrimaryContainer
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,15 +73,17 @@ private fun SubscriptionCard(sub: Subscription) {
     if (isActive) {
         // Active subscription — gradient card
         GradientCard(modifier = Modifier.fillMaxWidth()) {
-            Text("АКТИВНЫЙ", fontSize = 12.sp, fontWeight = FontWeight.W500, color = OnPrimaryContainer)
+            Text("АКТИВНЫЙ", fontSize = 12.sp, fontWeight = FontWeight.W500,
+                color = MaterialTheme.colorScheme.onPrimaryContainer)
             Spacer(Modifier.height(4.dp))
             Text(typeLabel(sub.type), fontSize = 20.sp, fontWeight = FontWeight.W600,
-                color = androidx.compose.ui.graphics.Color.White)
+                color = MaterialTheme.colorScheme.onPrimary)
             Spacer(Modifier.height(4.dp))
-            Text("${sub.startDate} — ${sub.endDate}", fontSize = 14.sp, color = OnPrimaryContainer)
+            Text("${sub.startDate} — ${sub.endDate}", fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer)
             Spacer(Modifier.height(2.dp))
             Text("${sub.price} руб.", fontSize = 14.sp, fontWeight = FontWeight.W500,
-                color = androidx.compose.ui.graphics.Color.White)
+                color = MaterialTheme.colorScheme.onPrimary)
         }
     } else {
         // Frozen or expired — outlined card with status badge

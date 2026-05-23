@@ -16,10 +16,6 @@ import com.example.fitnessapp.domain.model.Profile
 import com.example.fitnessapp.domain.model.Subscription
 import com.example.fitnessapp.domain.model.SubscriptionType
 import com.example.fitnessapp.ui.components.*
-import com.example.fitnessapp.ui.theme.OnPrimaryContainer
-import com.example.fitnessapp.ui.theme.Primary
-import com.example.fitnessapp.ui.theme.PrimaryContainer
-import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,13 +28,9 @@ fun ClientHomeScreen(
     viewModel: ClientHomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val state = viewModel.uiState
-    var notifCount by remember { mutableStateOf(0) }
 
-    LaunchedEffect(state) {
-        if (state is ClientHomeUiState.Loaded) {
-            // count unread notifications on first load (optional - skip for now)
-        }
-    }
+    // refresh when returning to this screen
+    LaunchedEffect(Unit) { viewModel.load() }
 
     Scaffold(
         topBar = {
@@ -46,9 +38,7 @@ fun ClientHomeScreen(
                 title = { Text("Фитнес-центр") },
                 actions = {
                     IconButton(onClick = onNotificationsClick) {
-                        Box {
-                            Icon(Icons.Default.Notifications, null)
-                        }
+                        Icon(Icons.Default.Notifications, null)
                     }
                 }
             )
@@ -58,14 +48,19 @@ fun ClientHomeScreen(
             is ClientHomeUiState.Loading -> Box(Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             is ClientHomeUiState.Error -> Box(Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center) { Text(state.message, color = MaterialTheme.colorScheme.error) }
+                contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(state.message, color = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.height(8.dp))
+                        FitnessButton("Повторить", onClick = { viewModel.load() })
+                    }
+                }
             is ClientHomeUiState.Loaded -> {
                 val name = state.profile.client?.fullName ?: state.profile.username
                 Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)
                     .verticalScroll(rememberScrollState())) {
 
                     Text("Привет, $name!", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-
                     Spacer(Modifier.height(20.dp))
 
                     // Active subscription card with gradient
@@ -73,18 +68,20 @@ fun ClientHomeScreen(
                         val sub = state.activeSubs.first()
                         GradientCard(modifier = Modifier.fillMaxWidth()) {
                             Text("АКТИВНЫЙ АБОНИМЕНТ", fontSize = 14.sp, fontWeight = FontWeight.W500,
-                                color = OnPrimaryContainer)
+                                color = MaterialTheme.colorScheme.onPrimaryContainer)
                             Spacer(Modifier.height(4.dp))
                             Text(typeLabel(sub.type), fontSize = 22.sp, fontWeight = FontWeight.W600,
-                                color = androidx.compose.ui.graphics.Color.White)
+                                color = MaterialTheme.colorScheme.onPrimary)
                             Spacer(Modifier.height(4.dp))
-                            Text("Действует до ${sub.endDate}", fontSize = 14.sp, color = OnPrimaryContainer)
+                            Text("Действует до ${sub.endDate}", fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                     } else {
                         OutlinedCard(modifier = Modifier.fillMaxWidth(),
                             shape = MaterialTheme.shapes.large) {
                             Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(40.dp))
+                                Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(40.dp))
                                 Spacer(Modifier.height(8.dp))
                                 Text("Нет активного абонемента", fontWeight = FontWeight.W500)
                                 Spacer(Modifier.height(12.dp))
@@ -98,7 +95,7 @@ fun ClientHomeScreen(
                     Spacer(Modifier.height(12.dp))
 
                     ActionCard(Icons.Default.EventAvailable, "Записаться на тренировку", "Выберите дату и время",
-                        onClick = onBookClick)
+                        badgeCount = state.unreadNotifs, onClick = onBookClick)
                     Spacer(Modifier.height(8.dp))
                     ActionCard(Icons.Default.CardMembership, "Мои абонементы", "Просмотр и оформление",
                         onClick = onSubscriptionsClick)
@@ -107,7 +104,7 @@ fun ClientHomeScreen(
                         onClick = onVisitsClick)
                     Spacer(Modifier.height(8.dp))
                     ActionCard(Icons.Default.Notifications, "Уведомления", "Новые записи и абонементы",
-                        badgeCount = notifCount, onClick = onNotificationsClick)
+                        badgeCount = state.unreadNotifs, onClick = onNotificationsClick)
                     Spacer(Modifier.height(8.dp))
                     ActionCard(Icons.Default.Person, "Профиль", "Настройки и данные",
                         onClick = onProfileClick)
