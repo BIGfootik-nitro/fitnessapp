@@ -203,7 +203,10 @@ fun NavGraph() {
         composable(Screen.MySubs.route) { MySubsScreen() }
         composable(Screen.MyBookings.route) { MyBookingsScreen() }
         composable(Screen.BrowseSessions.route) {
-            BrowseSessionsScreen(onBack = { navController.popBackStack() })
+            BrowseSessionsScreen(
+                onBack = { navController.popBackStack() },
+                onGoToSubscriptions = { navController.navigate(Screen.MySubs.route) }
+            )
         }
         composable(Screen.MyVisits.route) { MyVisitsScreen() }
         composable(Screen.MyNotifications.route) { MyNotificationsScreen() }

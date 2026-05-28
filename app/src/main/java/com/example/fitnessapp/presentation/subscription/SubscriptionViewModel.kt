@@ -58,7 +58,8 @@ class SubscriptionViewModel : ViewModel() {
             return
         }
         viewModelScope.launch {
-            repo.create(clientId, type.name, startDate, endDate, price).fold(
+            val normalizedPrice = price.trim().replace(",", ".").replace(" ", "")
+            repo.create(clientId, type.name, startDate, endDate, normalizedPrice).fold(
                 onSuccess = {
                     showCreateDialog = false
                     load(clientId)

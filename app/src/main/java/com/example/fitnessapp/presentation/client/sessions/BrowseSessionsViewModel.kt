@@ -10,15 +10,19 @@ import com.example.fitnessapp.data.repository.UnauthorizedException
 import com.example.fitnessapp.di.ServiceLocator
 import com.example.fitnessapp.domain.model.TrainingSession
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 sealed class BrowseSessionsUiState {
     data object Loading : BrowseSessionsUiState()
+    data object NoSubscription : BrowseSessionsUiState()
     data class Loaded(val sessions: List<TrainingSession>, val successMessage: String? = null) : BrowseSessionsUiState()
     data class Error(val message: String) : BrowseSessionsUiState()
 }
 
 class BrowseSessionsViewModel : ViewModel() {
     private val repo = ServiceLocator.sessionRepository
+    private val subRepo = ServiceLocator.subscriptionRepository
+
     var uiState by mutableStateOf<BrowseSessionsUiState>(BrowseSessionsUiState.Loading)
         private set
     var bookingInProgress by mutableStateOf<String?>(null)
@@ -27,6 +31,15 @@ class BrowseSessionsViewModel : ViewModel() {
     fun load() {
         viewModelScope.launch {
             uiState = BrowseSessionsUiState.Loading
+
+            val subs = subRepo.getMine().getOrElse { emptyList() }
+            val today = LocalDate.now().toString()
+            val hasActive = subs.any { it.endDate >= today && !it.isFrozen }
+            if (!hasActive) {
+                uiState = BrowseSessionsUiState.NoSubscription
+                return@launch
+            }
+
             repo.getAll().fold(
                 onSuccess = { uiState = BrowseSessionsUiState.Loaded(it) },
                 onFailure = { e ->

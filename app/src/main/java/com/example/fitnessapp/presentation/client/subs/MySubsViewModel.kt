@@ -46,7 +46,8 @@ class MySubsViewModel : ViewModel() {
 
     fun buy(type: String, startDate: String, endDate: String, price: String) {
         viewModelScope.launch {
-            subRepo.buyMine(type, startDate, endDate, price).fold(
+            val normalizedPrice = price.trim().replace(",", ".").replace(" ", "")
+            subRepo.buyMine(type, startDate, endDate, normalizedPrice).fold(
                 onSuccess = { closeBuy(); load() },
                 onFailure = { uiState = MySubsUiState.Error(it.message ?: "Ошибка") }
             )

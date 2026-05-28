@@ -1,6 +1,5 @@
 package com.example.fitnessapp.presentation.client.sessions
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,7 +15,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitnessapp.domain.model.TrainingSession
 import com.example.fitnessapp.ui.components.FitnessButton
-import com.example.fitnessapp.ui.components.GradientCard
 import com.example.fitnessapp.ui.components.StatusBadge
 import com.example.fitnessapp.ui.components.BadgeVariant
 
@@ -24,10 +22,31 @@ import com.example.fitnessapp.ui.components.BadgeVariant
 @Composable
 fun BrowseSessionsScreen(
     onBack: () -> Unit,
+    onGoToSubscriptions: () -> Unit = {},
     viewModel: BrowseSessionsViewModel = viewModel()
 ) {
     val state = viewModel.uiState
     LaunchedEffect(Unit) { viewModel.load() }
+
+    // Алерт "нет абонемента"
+    if (state is BrowseSessionsUiState.NoSubscription) {
+        AlertDialog(
+            onDismissRequest = onBack,
+            shape = MaterialTheme.shapes.extraLarge,
+            title = { Text("Нет активного абонемента") },
+            text = { Text("Для записи на тренировки необходим активный абонемент. Оформите абонемент в разделе «Мои абонементы».") },
+            confirmButton = {
+                FitnessButton("Оформить абонемент", onClick = {
+                    onBack()
+                    onGoToSubscriptions()
+                })
+            },
+            dismissButton = {
+                FitnessButton("Назад", onClick = onBack, outlined = true)
+            }
+        )
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -40,12 +59,14 @@ fun BrowseSessionsScreen(
         when (state) {
             is BrowseSessionsUiState.Loading -> Box(Modifier.fillMaxSize().padding(padding),
                 Alignment.Center) { CircularProgressIndicator() }
-            is BrowseSessionsUiState.Error -> Box(Modifier.fillMaxSize().padding(padding),
-                Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(state.message, color = MaterialTheme.colorScheme.error)
-                    FitnessButton("Повторить", onClick = { viewModel.load() })
-                }
+            is BrowseSessionsUiState.Error -> Column(
+                Modifier.fillMaxSize().padding(padding).padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(state.message, color = MaterialTheme.colorScheme.error)
+                Spacer(Modifier.height(8.dp))
+                FitnessButton("Повторить", onClick = { viewModel.load() })
             }
             is BrowseSessionsUiState.Loaded -> {
                 if (state.sessions.isEmpty()) {
@@ -65,19 +86,20 @@ fun BrowseSessionsScreen(
                         }
                     }
                 }
-            }
-        }
-    }
 
-    state.let {
-        if (it is BrowseSessionsUiState.Loaded && it.successMessage != null) {
-            LaunchedEffect(it.successMessage) {
-                kotlinx.coroutines.delay(2000)
-                viewModel.clearSuccess()
+                if (state.successMessage != null) {
+                    LaunchedEffect(state.successMessage) {
+                        kotlinx.coroutines.delay(2000)
+                        viewModel.clearSuccess()
+                    }
+                    Box(Modifier.fillMaxSize().padding(padding), Alignment.BottomCenter) {
+                        Snackbar(modifier = Modifier.padding(16.dp)) {
+                            Text(state.successMessage)
+                        }
+                    }
+                }
             }
-            Snackbar(modifier = Modifier.padding(16.dp)) {
-                Text(it.successMessage)
-            }
+            is BrowseSessionsUiState.NoSubscription -> {} // handled above
         }
     }
 }
@@ -90,14 +112,15 @@ private fun SessionCard(
 ) {
     OutlinedCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
         Column(Modifier.padding(16.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top) {
                 Text(session.title, fontWeight = FontWeight.W600, fontSize = 17.sp,
                     modifier = Modifier.weight(1f))
                 if (session.isFull) StatusBadge("Мест нет", BadgeVariant.CANCELLED)
                 else StatusBadge("${session.spotsLeft} мест", BadgeVariant.CONFIRMED)
             }
             Spacer(Modifier.height(4.dp))
-            Text("${session.scheduledAt.substringBefore('T')} в ${session.scheduledAt.substring(11,16)}",
+            Text("${session.scheduledAt.substringBefore('T')} в ${session.scheduledAt.substring(11, 16)}",
                 fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("${session.durationMin} мин" + (session.trainerName?.let { " · $it" } ?: ""),
                 fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -107,7 +130,11 @@ private fun SessionCard(
             }
             Spacer(Modifier.height(12.dp))
             FitnessButton(
-                text = if (isBooking) "Запись..." else "Записаться",
+                text = when {
+                    isBooking -> "Запись..."
+                    session.isFull -> "Мест нет"
+                    else -> "Записаться"
+                },
                 onClick = onBook,
                 enabled = !session.isFull && !isBooking,
                 modifier = Modifier.fillMaxWidth()
