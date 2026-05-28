@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fitnessapp.data.repository.AuthEventBus
+import com.example.fitnessapp.data.repository.UnauthorizedException
 import com.example.fitnessapp.di.ServiceLocator
 import com.example.fitnessapp.domain.model.Profile
 import com.example.fitnessapp.domain.model.Subscription
@@ -31,7 +33,9 @@ class ClientHomeViewModel : ViewModel() {
             uiState = ClientHomeUiState.Loading
             val profileResult = profileRepo.getMe()
             val profile = profileResult.getOrElse {
-                uiState = ClientHomeUiState.Error(it.message ?: "Ошибка"); return@launch
+                if (it is UnauthorizedException) AuthEventBus.emitUnauthorized()
+                else uiState = ClientHomeUiState.Error(it.message ?: "Ошибка")
+                return@launch
             }
             val subsResult = subRepo.getMine()
             val subs = subsResult.getOrElse { emptyList() }

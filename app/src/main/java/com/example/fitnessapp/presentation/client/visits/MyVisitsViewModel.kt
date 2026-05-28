@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fitnessapp.data.repository.AuthEventBus
+import com.example.fitnessapp.data.repository.UnauthorizedException
 import com.example.fitnessapp.di.ServiceLocator
 import com.example.fitnessapp.domain.model.Visit
 import kotlinx.coroutines.launch
@@ -28,7 +30,10 @@ class MyVisitsViewModel : ViewModel() {
         viewModelScope.launch {
             visitRepo.getMine().fold(
                 onSuccess = { uiState = MyVisitsUiState.Loaded(it) },
-                onFailure = { uiState = MyVisitsUiState.Error(it.message ?: "Ошибка") }
+                onFailure = { e ->
+                    if (e is UnauthorizedException) AuthEventBus.emitUnauthorized()
+                    else uiState = MyVisitsUiState.Error(e.message ?: "Ошибка")
+                }
             )
         }
     }

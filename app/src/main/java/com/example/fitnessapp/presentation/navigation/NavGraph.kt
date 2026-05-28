@@ -7,6 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.fitnessapp.data.repository.AuthEvent
+import com.example.fitnessapp.data.repository.AuthEventBus
 import com.example.fitnessapp.di.ServiceLocator
 import com.example.fitnessapp.presentation.auth.LoginScreen
 import com.example.fitnessapp.presentation.auth.RegisterScreen
@@ -22,11 +24,22 @@ import com.example.fitnessapp.presentation.clients.form.ClientFormScreen
 import com.example.fitnessapp.presentation.clients.list.ClientListScreen
 import com.example.fitnessapp.presentation.subscription.SubscriptionScreen
 import com.example.fitnessapp.presentation.visit.VisitLogScreen
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @Composable
 fun NavGraph() {
     val navController = rememberNavController()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        AuthEventBus.events.collect { event ->
+            if (event is AuthEvent.Unauthorized) {
+                scope.launch { ServiceLocator.authRepository.logout() }
+                navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } }
+            }
+        }
+    }
 
     val startDestination = remember {
         val loggedIn = runBlocking { ServiceLocator.authRepository.isLoggedIn() }
