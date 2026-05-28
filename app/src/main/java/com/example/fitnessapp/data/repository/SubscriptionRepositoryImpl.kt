@@ -21,6 +21,7 @@ class SubscriptionRepositoryImpl(private val client: HttpClient) : SubscriptionR
     override suspend fun getByClient(clientId: String): Result<List<Subscription>> = runCatching {
         val response = client.get("/clients/$clientId/subscriptions")
         if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        if (!response.status.isSuccess()) throw RuntimeException("Ошибка сервера: ${response.status.value}")
         val list: List<SubscriptionResponse> = response.body()
         list.map {
             Subscription(
@@ -47,6 +48,7 @@ class SubscriptionRepositoryImpl(private val client: HttpClient) : SubscriptionR
     override suspend fun getMine(): Result<List<Subscription>> = runCatching {
         val response = client.get("/me/subscriptions")
         if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        if (!response.status.isSuccess()) throw RuntimeException("Ошибка сервера: ${response.status.value}")
         val list: List<SubscriptionResponse> = response.body()
         list.map {
             Subscription(it.id, it.clientId, SubscriptionType.valueOf(it.type),

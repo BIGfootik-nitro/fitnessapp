@@ -15,6 +15,7 @@ class NotificationRepositoryImpl(private val client: HttpClient) : NotificationR
     override suspend fun getMine(): Result<List<Notification>> = runCatching {
         val response = client.get("/me/notifications")
         if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        if (!response.status.isSuccess()) throw RuntimeException("Ошибка сервера: ${response.status.value}")
         val list: List<NotificationResponse> = response.body()
         list.map { Notification(it.id, it.title, it.body, it.read, it.createdAt) }
     }

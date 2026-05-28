@@ -18,6 +18,7 @@ class ProfileRepositoryImpl(private val client: HttpClient) : ProfileRepository 
     override suspend fun getMe(): Result<Profile> = runCatching {
         val response = client.get("/me")
         if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        if (!response.status.isSuccess()) throw RuntimeException("Ошибка сервера: ${response.status.value}")
         val me: MeResponse = response.body()
         Profile(
             userId = me.userId,
