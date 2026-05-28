@@ -8,6 +8,7 @@ import com.example.fitnessapp.data.repository.BookingRepositoryImpl
 import com.example.fitnessapp.data.repository.ClientRepositoryImpl
 import com.example.fitnessapp.data.repository.NotificationRepositoryImpl
 import com.example.fitnessapp.data.repository.ProfileRepositoryImpl
+import com.example.fitnessapp.data.repository.SessionRepositoryImpl
 import com.example.fitnessapp.data.repository.SubscriptionRepositoryImpl
 import com.example.fitnessapp.data.repository.VisitRepositoryImpl
 import com.example.fitnessapp.domain.repository.AuthRepository
@@ -15,6 +16,7 @@ import com.example.fitnessapp.domain.repository.BookingRepository
 import com.example.fitnessapp.domain.repository.ClientRepository
 import com.example.fitnessapp.domain.repository.NotificationRepository
 import com.example.fitnessapp.domain.repository.ProfileRepository
+import com.example.fitnessapp.domain.repository.SessionRepository
 import com.example.fitnessapp.domain.repository.SubscriptionRepository
 import com.example.fitnessapp.domain.repository.VisitRepository
 import io.ktor.client.HttpClient
@@ -65,5 +67,9 @@ object ServiceLocator {
 
     val notificationRepository: NotificationRepository by lazy {
         NotificationRepositoryImpl(getHttpClient())
+    }
+
+    val sessionRepository: SessionRepository by lazy {
+        SessionRepositoryImpl(getHttpClient())
     }
 }

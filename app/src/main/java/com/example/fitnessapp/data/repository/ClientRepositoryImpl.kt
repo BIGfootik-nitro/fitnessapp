@@ -22,14 +22,14 @@ class ClientRepositoryImpl(private val client: HttpClient) : ClientRepository {
         val response = client.get("/clients") {
             if (search.isNotBlank()) parameter("search", search)
         }
-        ensureAuthorized(response.status)
+        ensureSuccess(response.status)
         val list: List<ClientResponse> = response.body()
         list.map { it.toDomain() }
     }
 
     override suspend fun getById(id: String): Result<Client> = runCatching {
         val response = client.get("/clients/$id")
-        ensureAuthorized(response.status)
+        ensureSuccess(response.status)
         if (!response.status.isSuccess()) throw RuntimeException("Клиент не найден")
         val dto: ClientResponse = response.body()
         dto.toDomain()
@@ -39,7 +39,7 @@ class ClientRepositoryImpl(private val client: HttpClient) : ClientRepository {
         val response = client.post("/clients") {
             setBody(ClientRequest(fullName, phone, email, birthDate))
         }
-        ensureAuthorized(response.status)
+        ensureSuccess(response.status)
         if (!response.status.isSuccess()) throw RuntimeException("Не удалось создать клиента")
         response.body<IdResponse>().id
     }
@@ -48,20 +48,24 @@ class ClientRepositoryImpl(private val client: HttpClient) : ClientRepository {
         val response = client.put("/clients/$id") {
             setBody(ClientRequest(fullName, phone, email, birthDate))
         }
-        ensureAuthorized(response.status)
+        ensureSuccess(response.status)
         if (!response.status.isSuccess()) throw RuntimeException("Не удалось обновить")
     }
 
     override suspend fun delete(id: String): Result<Unit> = runCatching {
         val response = client.delete("/clients/$id")
-        ensureAuthorized(response.status)
+        ensureSuccess(response.status)
         if (!response.status.isSuccess()) throw RuntimeException("Не удалось удалить")
     }
 
     private fun ClientResponse.toDomain() = Client(id, fullName, phone, email, birthDate)
 
-    private fun ensureAuthorized(status: HttpStatusCode) {
-        if (status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+    private fun ensureSuccess(status: HttpStatusCode) {
+        when {
+            status == HttpStatusCode.Unauthorized -> throw UnauthorizedException()
+            status == HttpStatusCode.Forbidden -> throw RuntimeException("Нет доступа (403)")
+            !status.isSuccess() -> throw RuntimeException("Ошибка сервера: ${status.value}")
+        }
     }
 }
 

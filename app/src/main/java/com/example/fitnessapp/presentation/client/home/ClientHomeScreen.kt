@@ -21,6 +21,7 @@ import com.example.fitnessapp.ui.components.*
 @Composable
 fun ClientHomeScreen(
     onSubscriptionsClick: () -> Unit,
+    onSessionsClick: () -> Unit,
     onBookClick: () -> Unit,
     onVisitsClick: () -> Unit,
     onNotificationsClick: () -> Unit,
@@ -94,7 +95,10 @@ fun ClientHomeScreen(
                     Text("Действия", fontSize = 18.sp, fontWeight = FontWeight.W600)
                     Spacer(Modifier.height(12.dp))
 
-                    ActionCard(Icons.Default.EventAvailable, "Записаться на тренировку", "Выберите дату и время",
+                    ActionCard(Icons.Default.FitnessCenter, "Тренировки", "Расписание и запись на занятия",
+                        onClick = onSessionsClick)
+                    Spacer(Modifier.height(8.dp))
+                    ActionCard(Icons.Default.EventAvailable, "Мои записи", "Ваши предстоящие тренировки",
                         badgeCount = state.unreadNotifs, onClick = onBookClick)
                     Spacer(Modifier.height(8.dp))
                     ActionCard(Icons.Default.CardMembership, "Мои абонементы", "Просмотр и оформление",

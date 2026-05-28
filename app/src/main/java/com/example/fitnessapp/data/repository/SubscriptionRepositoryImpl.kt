@@ -8,9 +8,11 @@ import com.example.fitnessapp.domain.model.SubscriptionType
 import com.example.fitnessapp.domain.repository.SubscriptionRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
@@ -69,6 +71,20 @@ class SubscriptionRepositoryImpl(private val client: HttpClient) : SubscriptionR
         if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
         if (!response.status.isSuccess()) throw RuntimeException("Не удалось изменить статус")
         response.body<FreezeResponse>().isFrozen
+    }
+
+    override suspend fun updateSub(id: String, type: String, startDate: String, endDate: String, price: String): Result<Unit> = runCatching {
+        val response = client.put("/subscriptions/$id") {
+            setBody(SubscriptionRequest(type, startDate, endDate, price))
+        }
+        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        if (!response.status.isSuccess()) throw RuntimeException("Ошибка обновления")
+    }
+
+    override suspend fun deleteSub(id: String): Result<Unit> = runCatching {
+        val response = client.delete("/subscriptions/$id")
+        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        if (!response.status.isSuccess()) throw RuntimeException("Ошибка удаления")
     }
 
     @Serializable

@@ -19,14 +19,14 @@ class BookingRepositoryImpl(private val client: HttpClient) : BookingRepository 
 
     override suspend fun getMine(): Result<List<Booking>> = runCatching {
         val response = client.get("/me/bookings")
-        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        ensureSuccess(response.status)
         val list: List<BookingResponse> = response.body()
         list.map { Booking(it.id, it.clientId, it.clientName, it.scheduledAt, BookingStatus.valueOf(it.status), it.note) }
     }
 
     override suspend fun getAll(): Result<List<Booking>> = runCatching {
         val response = client.get("/bookings")
-        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        ensureSuccess(response.status)
         val list: List<BookingResponse> = response.body()
         list.map { Booking(it.id, it.clientId, it.clientName, it.scheduledAt, BookingStatus.valueOf(it.status), it.note) }
     }
@@ -35,21 +35,26 @@ class BookingRepositoryImpl(private val client: HttpClient) : BookingRepository 
         val response = client.post("/me/bookings") {
             setBody(BookingRequest(scheduledAtIso, note))
         }
-        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
-        if (!response.status.isSuccess()) throw RuntimeException("Не удалось записаться")
+        ensureSuccess(response.status)
     }
 
     override suspend fun cancelMine(id: String): Result<Unit> = runCatching {
         val response = client.patch("/me/bookings/$id/cancel")
-        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
-        if (!response.status.isSuccess()) throw RuntimeException("Не удалось отменить")
+        ensureSuccess(response.status)
     }
 
     override suspend fun changeStatus(id: String, status: String): Result<Unit> = runCatching {
         val response = client.patch("/bookings/$id/status") {
             setBody(BookingStatusUpdate(status))
         }
-        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
-        if (!response.status.isSuccess()) throw RuntimeException("Не удалось изменить статус")
+        ensureSuccess(response.status)
+    }
+
+    private fun ensureSuccess(status: HttpStatusCode) {
+        when {
+            status == HttpStatusCode.Unauthorized -> throw UnauthorizedException()
+            status == HttpStatusCode.Forbidden -> throw RuntimeException("Нет доступа (403)")
+            !status.isSuccess() -> throw RuntimeException("Ошибка сервера: ${status.value}")
+        }
     }
 }

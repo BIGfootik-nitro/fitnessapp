@@ -20,9 +20,21 @@ sealed class Screen(val route: String) {
         fun create(clientId: String) = "visits/$clientId"
     }
     data object TrainerBookings : Screen("trainer_bookings")
+    data object SessionList : Screen("sessions")
+    data object CreateEditSession : Screen("session_form?id={id}") {
+        fun create() = "session_form"
+        fun edit(id: String) = "session_form?id=$id"
+    }
+    data object SessionDetail : Screen("session_detail/{id}") {
+        fun create(id: String) = "session_detail/$id"
+    }
+    data object EditSubscription : Screen("edit_subscription/{id}") {
+        fun create(id: String) = "edit_subscription/$id"
+    }
 
     // клиент
     data object ClientHome : Screen("client_home")
+    data object BrowseSessions : Screen("browse_sessions")
     data object MySubs : Screen("my_subs")
     data object MyBookings : Screen("my_bookings")
     data object MyVisits : Screen("my_visits")

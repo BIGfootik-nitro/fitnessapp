@@ -24,6 +24,7 @@ import java.time.LocalDate
 fun SubscriptionScreen(
     clientId: String,
     onBack: () -> Unit,
+    onEditSub: (String) -> Unit = {},
     viewModel: SubscriptionViewModel = viewModel()
 ) {
     LaunchedEffect(clientId) { viewModel.load(clientId) }

@@ -17,14 +17,14 @@ class VisitRepositoryImpl(private val client: HttpClient) : VisitRepository {
 
     override suspend fun getByClient(clientId: String): Result<List<Visit>> = runCatching {
         val response = client.get("/clients/$clientId/visits")
-        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        ensureSuccess(response.status)
         val list: List<VisitResponse> = response.body()
         list.map { Visit(it.id, it.clientId, it.visitedAt, it.note) }
     }
 
     override suspend fun getMine(): Result<List<Visit>> = runCatching {
         val response = client.get("/me/visits")
-        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
+        ensureSuccess(response.status)
         val list: List<VisitResponse> = response.body()
         list.map { Visit(it.id, it.clientId, it.visitedAt, it.note) }
     }
@@ -33,8 +33,15 @@ class VisitRepositoryImpl(private val client: HttpClient) : VisitRepository {
         val response = client.post("/clients/$clientId/visits") {
             setBody(VisitRequest(visitedAt, note))
         }
-        if (response.status == HttpStatusCode.Unauthorized) throw UnauthorizedException()
-        if (!response.status.isSuccess()) throw RuntimeException("Не удалось записать посещение")
+        ensureSuccess(response.status)
         response.body<IdResponse>().id
+    }
+
+    private fun ensureSuccess(status: HttpStatusCode) {
+        when {
+            status == HttpStatusCode.Unauthorized -> throw UnauthorizedException()
+            status == HttpStatusCode.Forbidden -> throw RuntimeException("Нет доступа (403)")
+            !status.isSuccess() -> throw RuntimeException("Ошибка сервера: ${status.value}")
+        }
     }
 }

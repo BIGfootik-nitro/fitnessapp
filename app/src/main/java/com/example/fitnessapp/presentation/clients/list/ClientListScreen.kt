@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,6 +30,7 @@ fun ClientListScreen(
     onAddClient: () -> Unit,
     onLogout: () -> Unit,
     onBookings: () -> Unit,
+    onSessions: () -> Unit,
     viewModel: ClientListViewModel = viewModel()
 ) {
     val state = viewModel.uiState
@@ -42,6 +44,9 @@ fun ClientListScreen(
             TopAppBar(
                 title = { Text("Клиенты") },
                 actions = {
+                    IconButton(onClick = onSessions) {
+                        Icon(Icons.Default.FitnessCenter, contentDescription = "Тренировки")
+                    }
                     IconButton(onClick = onBookings) {
                         Icon(Icons.Default.CalendarMonth, contentDescription = "Записи")
                     }

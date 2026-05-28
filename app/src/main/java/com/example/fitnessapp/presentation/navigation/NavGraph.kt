@@ -22,6 +22,11 @@ import com.example.fitnessapp.presentation.client.visits.MyVisitsScreen
 import com.example.fitnessapp.presentation.clients.detail.ClientDetailScreen
 import com.example.fitnessapp.presentation.clients.form.ClientFormScreen
 import com.example.fitnessapp.presentation.clients.list.ClientListScreen
+import com.example.fitnessapp.presentation.client.sessions.BrowseSessionsScreen
+import com.example.fitnessapp.presentation.sessions.CreateEditSessionScreen
+import com.example.fitnessapp.presentation.sessions.SessionDetailScreen
+import com.example.fitnessapp.presentation.sessions.SessionListScreen
+import com.example.fitnessapp.presentation.subscription.EditSubscriptionScreen
 import com.example.fitnessapp.presentation.subscription.SubscriptionScreen
 import com.example.fitnessapp.presentation.visit.VisitLogScreen
 import kotlinx.coroutines.launch
@@ -85,7 +90,8 @@ fun NavGraph() {
                 onClientClick = { id -> navController.navigate(Screen.ClientDetail.create(id)) },
                 onAddClient = { navController.navigate(Screen.ClientForm.create()) },
                 onLogout = { navController.navigate(Screen.Login.route) { popUpTo(0) { inclusive = true } } },
-                onBookings = { navController.navigate(Screen.TrainerBookings.route) }
+                onBookings = { navController.navigate(Screen.TrainerBookings.route) },
+                onSessions = { navController.navigate(Screen.SessionList.route) }
             )
         }
 
@@ -119,7 +125,8 @@ fun NavGraph() {
             arguments = listOf(navArgument("clientId") { type = NavType.StringType })
         ) { entry ->
             val clientId = entry.arguments?.getString("clientId") ?: return@composable
-            SubscriptionScreen(clientId = clientId, onBack = { navController.popBackStack() })
+            SubscriptionScreen(clientId = clientId, onBack = { navController.popBackStack() },
+                onEditSub = { navController.navigate(Screen.EditSubscription.create(it)) })
         }
 
         composable(
@@ -134,9 +141,58 @@ fun NavGraph() {
             BookingsScreen()
         }
 
+        composable(Screen.SessionList.route) {
+            val role = runBlocking { ServiceLocator.authRepository.getRole() } ?: "TRAINER"
+            SessionListScreen(
+                onSessionClick = { navController.navigate(Screen.SessionDetail.create(it)) },
+                onCreateSession = { navController.navigate(Screen.CreateEditSession.create()) },
+                onBack = { navController.popBackStack() },
+                isAdmin = role == "ADMIN"
+            )
+        }
+
+        composable(
+            route = Screen.CreateEditSession.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null })
+        ) { entry ->
+            val id = entry.arguments?.getString("id")
+            CreateEditSessionScreen(
+                sessionId = id,
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.SessionDetail.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { entry ->
+            val id = entry.arguments?.getString("id") ?: return@composable
+            val role = runBlocking { ServiceLocator.authRepository.getRole() } ?: "TRAINER"
+            SessionDetailScreen(
+                sessionId = id,
+                onBack = { navController.popBackStack() },
+                onEdit = { navController.navigate(Screen.CreateEditSession.edit(it)) },
+                isAdmin = role == "ADMIN"
+            )
+        }
+
+        composable(
+            route = Screen.EditSubscription.route,
+            arguments = listOf(navArgument("id") { type = NavType.StringType })
+        ) { entry ->
+            val id = entry.arguments?.getString("id") ?: return@composable
+            EditSubscriptionScreen(
+                subscriptionId = id,
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() }
+            )
+        }
+
         composable(Screen.ClientHome.route) {
             ClientHomeScreen(
                 onSubscriptionsClick = { navController.navigate(Screen.MySubs.route) },
+                onSessionsClick = { navController.navigate(Screen.BrowseSessions.route) },
                 onBookClick = { navController.navigate(Screen.MyBookings.route) },
                 onVisitsClick = { navController.navigate(Screen.MyVisits.route) },
                 onNotificationsClick = { navController.navigate(Screen.MyNotifications.route) },
@@ -146,6 +202,9 @@ fun NavGraph() {
 
         composable(Screen.MySubs.route) { MySubsScreen() }
         composable(Screen.MyBookings.route) { MyBookingsScreen() }
+        composable(Screen.BrowseSessions.route) {
+            BrowseSessionsScreen(onBack = { navController.popBackStack() })
+        }
         composable(Screen.MyVisits.route) { MyVisitsScreen() }
         composable(Screen.MyNotifications.route) { MyNotificationsScreen() }
 
