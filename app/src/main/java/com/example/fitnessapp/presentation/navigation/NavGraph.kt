@@ -38,7 +38,6 @@ fun NavGraph() {
     }
 
     NavHost(navController = navController, startDestination = startDestination) {
-        // === Auth ===
         composable(Screen.Login.route) {
             LoginScreen(
                 onLoginSuccess = {
@@ -68,7 +67,6 @@ fun NavGraph() {
             )
         }
 
-        // === Trainer / Admin ===
         composable(Screen.ClientList.route) {
             ClientListScreen(
                 onClientClick = { id -> navController.navigate(Screen.ClientDetail.create(id)) },
@@ -123,14 +121,13 @@ fun NavGraph() {
             BookingsScreen()
         }
 
-        // === Client ===
         composable(Screen.ClientHome.route) {
             ClientHomeScreen(
                 onSubscriptionsClick = { navController.navigate(Screen.MySubs.route) },
                 onBookClick = { navController.navigate(Screen.MyBookings.route) },
                 onVisitsClick = { navController.navigate(Screen.MyVisits.route) },
                 onNotificationsClick = { navController.navigate(Screen.MyNotifications.route) },
-                onProfileClick = { navController.navigate(Screen.ClientProfile.route) }
+                onProfileClick = { navController.navigate(Screen.ClientProfile.create()) }
             )
         }
 
