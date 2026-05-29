@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.domain.model.Profile
 import com.example.fitnessapp.domain.model.Subscription
 import com.example.fitnessapp.domain.model.SubscriptionType
+import androidx.compose.material3.LocalContentColor
 import com.example.fitnessapp.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,14 +69,14 @@ fun ClientHomeScreen(
                     if (state.activeSubs.isNotEmpty()) {
                         val sub = state.activeSubs.first()
                         GradientCard(modifier = Modifier.fillMaxWidth()) {
-                            Text("АКТИВНЫЙ АБОНИМЕНТ", fontSize = 14.sp, fontWeight = FontWeight.W500,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text("АКТИВНЫЙ АБОНЕМЕНТ", fontSize = 14.sp, fontWeight = FontWeight.W500,
+                                color = LocalContentColor.current.copy(alpha = 0.8f))
                             Spacer(Modifier.height(4.dp))
                             Text(typeLabel(sub.type), fontSize = 22.sp, fontWeight = FontWeight.W600,
-                                color = MaterialTheme.colorScheme.onPrimary)
+                                color = LocalContentColor.current)
                             Spacer(Modifier.height(4.dp))
                             Text("Действует до ${sub.endDate}", fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                color = LocalContentColor.current.copy(alpha = 0.8f))
                         }
                     } else {
                         OutlinedCard(modifier = Modifier.fillMaxWidth(),

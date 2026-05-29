@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fitnessapp.domain.model.Subscription
 import com.example.fitnessapp.domain.model.SubscriptionType
+import androidx.compose.material3.LocalContentColor
 import com.example.fitnessapp.ui.components.*
 import java.time.LocalDate
 
@@ -74,16 +75,16 @@ private fun SubscriptionCard(sub: Subscription) {
         // Active subscription — gradient card
         GradientCard(modifier = Modifier.fillMaxWidth()) {
             Text("АКТИВНЫЙ", fontSize = 12.sp, fontWeight = FontWeight.W500,
-                color = MaterialTheme.colorScheme.onPrimaryContainer)
+                color = LocalContentColor.current.copy(alpha = 0.8f))
             Spacer(Modifier.height(4.dp))
             Text(typeLabel(sub.type), fontSize = 20.sp, fontWeight = FontWeight.W600,
-                color = MaterialTheme.colorScheme.onPrimary)
+                color = LocalContentColor.current)
             Spacer(Modifier.height(4.dp))
             Text("${sub.startDate} — ${sub.endDate}", fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer)
+                color = LocalContentColor.current.copy(alpha = 0.8f))
             Spacer(Modifier.height(2.dp))
             Text("${sub.price} руб.", fontSize = 14.sp, fontWeight = FontWeight.W500,
-                color = MaterialTheme.colorScheme.onPrimary)
+                color = LocalContentColor.current)
         }
     } else {
         // Frozen or expired — outlined card with status badge

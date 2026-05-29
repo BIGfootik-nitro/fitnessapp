@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitnessapp.domain.model.SessionAttendee
 import com.example.fitnessapp.ui.components.AvatarInitials
+import androidx.compose.material3.LocalContentColor
 import com.example.fitnessapp.ui.components.FitnessButton
 import com.example.fitnessapp.ui.components.GradientCard
 import com.example.fitnessapp.ui.components.StatusBadge
@@ -66,18 +67,18 @@ fun SessionDetailScreen(
                         // Info card
                         GradientCard(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                             Text(session.title, fontSize = 22.sp, fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimary)
+                                color = LocalContentColor.current)
                             Spacer(Modifier.height(4.dp))
                             Text("${session.scheduledAt.substringBefore('T')} · ${session.scheduledAt.substring(11,16)}",
-                                fontSize = 14.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                fontSize = 14.sp, color = LocalContentColor.current.copy(alpha = 0.8f))
                             Text("${session.durationMin} мин · ${session.bookedCount}/${session.maxCapacity} участников",
-                                fontSize = 14.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                fontSize = 14.sp, color = LocalContentColor.current.copy(alpha = 0.8f))
                             session.trainerName?.let {
-                                Text("Тренер: $it", fontSize = 14.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                Text("Тренер: $it", fontSize = 14.sp, color = LocalContentColor.current.copy(alpha = 0.8f))
                             }
                             session.description?.let {
                                 Spacer(Modifier.height(8.dp))
-                                Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                Text(it, fontSize = 14.sp, color = LocalContentColor.current.copy(alpha = 0.8f))
                             }
                         }
                         Spacer(Modifier.height(8.dp))

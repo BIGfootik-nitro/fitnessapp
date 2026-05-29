@@ -2,10 +2,12 @@ package com.example.fitnessapp.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,38 +31,42 @@ fun GradientCard(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val isDark = isSystemInDarkTheme()
+    val gradColors = if (isDark)
+        listOf(DarkGradientStart, DarkGradientEnd)
+    else
+        listOf(Primary, PrimaryGradientEnd)
+    val contentColor = if (isDark) DarkOnPrimaryContainer else OnPrimary
+
     Card(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .background(Brush.verticalGradient(colors = listOf(
-                    MaterialTheme.colorScheme.primary,
-                    PrimaryGradientEnd
-                )))
-                .then(Modifier.padding(20.dp))
-        ) {
-            Column { content() }
+        CompositionLocalProvider(LocalContentColor provides contentColor) {
+            Box(
+                modifier = Modifier
+                    .background(Brush.linearGradient(colors = gradColors))
+                    .padding(20.dp)
+            ) {
+                Column { content() }
+            }
         }
     }
 }
 
 @Composable
 fun StatusBadge(text: String, variant: BadgeVariant) {
+    val isDark = isSystemInDarkTheme()
     val (bg, fg) = when (variant) {
-        BadgeVariant.ACTIVE -> SuccessContainer to Success
-        BadgeVariant.FROZEN -> WarningContainer to Warning
-        BadgeVariant.EXPIRED -> ErrorContainer to Error
-        BadgeVariant.PENDING -> WarningContainer to Warning
-        BadgeVariant.CONFIRMED -> SuccessContainer to Success
-        BadgeVariant.CANCELLED -> ErrorContainer to Error
+        BadgeVariant.ACTIVE, BadgeVariant.CONFIRMED ->
+            if (isDark) DarkSuccessContainer to DarkSuccess else SuccessContainer to Success
+        BadgeVariant.FROZEN, BadgeVariant.PENDING ->
+            if (isDark) DarkWarningContainer to DarkWarning else WarningContainer to Warning
+        BadgeVariant.EXPIRED, BadgeVariant.CANCELLED ->
+            MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.error
     }
-    Surface(
-        shape = MaterialTheme.shapes.extraSmall,
-        color = bg
-    ) {
+    Surface(shape = MaterialTheme.shapes.extraSmall, color = bg) {
         Text(
             text,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
